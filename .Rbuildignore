@@ -1,2 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+R/functions.R
+R/simulations.R
+^LICENSE\.md$

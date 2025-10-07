@@ -1,16 +1,21 @@
 Package: Wishart
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Authors@R: c(
-    person(
-      "Jane", "Doe",
-      email = "jane@example.com",
-      role = c("aut", "cre")
-    )
-  )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Title: Kernel Density Estimation for Wishart Random Matrices
+Version: 0.0.0001
+Authors@R: c(person(given="Leo", family="Belzile", role = c("aut", "cre"), email = "belzilel@gmail.com", comment = c(ORCID = "0000-0002-9135-014X")), person(given="Frederic", family="Ouimet", email = "frederic.ouimet.23@gmail.com", role = "aut", comment = c(ORCID = "0000-0001-7933-5265")))
+Description: Kernel smoothing for Wishart random matrices <doi:10.48550/arXiv.2506.08816> using least square or likelihood cross validation criteria for optimal bandwidth selection.
+BugReports:
+      https://github.com/lbelzile/Wishart/issues
+Imports:
+    Rcpp (>= 1.0.12)   
+Depends:
+    R (>= 2.10)
+Suggests:
+   tinytest,
+LinkingTo: 
+    Rcpp, 
+    RcppArmadillo
 Encoding: UTF-8
 LazyData: true
+License: MIT + file LICENSE
+RoxygenNote: 7.3.3
