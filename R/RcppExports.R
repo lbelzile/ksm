@@ -7,6 +7,7 @@
 #'
 #' @param A square matrix
 #' @return symmetrized version of \code{A}
+#' @export
 symmetrize <- function(A) {
     .Call(`_Wishart_symmetrize`, A)
 }
@@ -15,6 +16,7 @@ symmetrize <- function(A) {
 #' @param x vector of log components to add
 #' @return double with the log sum of elements
 #' @keywords internal
+#' @export
 sumlog <- function(x) {
     .Call(`_Wishart_sumlog`, x)
 }
@@ -37,6 +39,7 @@ meanlog <- function(x) {
 #' @param x vector of log components
 #' @param sgn sign of the operator
 #' @return log sum of elements
+#' @export
 sumsignedlog <- function(x, sgn) {
     .Call(`_Wishart_sumsignedlog`, x, sgn)
 }
@@ -45,6 +48,7 @@ sumsignedlog <- function(x, sgn) {
 #'
 #' @param par double for angle in \eqn{[0,2\pi).}
 #' @return a 2 by 2 rotation matrix
+#' @export
 #' @keywords internal
 rotation2d <- function(par) {
     .Call(`_Wishart_rotation2d`, par)
@@ -54,6 +58,7 @@ rotation2d <- function(par) {
 #'
 #' @param par vector of length 3 containing elements \eqn{\phi \in [0, 2*\pi)}, \eqn{\theta \in [0, \pi]} and \eqn{\psi \in [0, 2\pi)}, in that order.
 #' @return a 3 by 3 rotation matrix
+#' @export
 #' @keywords internal
 rotation3d <- function(par) {
     .Call(`_Wishart_rotation3d`, par)
@@ -66,6 +71,7 @@ rotation3d <- function(par) {
 #' @param scale vector of length 2 (\eqn{d=2}) or 3 (\eqn{d=3}), strictly positive
 #' @return a 2 by 2, or 3 by 3 scaling matrix, depending on inputs
 #' @keywords internal
+#' @export
 rotation_scaling <- function(ang, scale) {
     .Call(`_Wishart_rotation_scaling`, ang, scale)
 }
@@ -77,6 +83,7 @@ rotation_scaling <- function(ang, scale) {
 #' @param df degrees of freedom
 #' @param log logical; if \code{TRUE}, returns the log density
 #' @return a vector of length \code{n} containing the log-density of the Wishart.
+#' @export
 dWishart <- function(x, df, S, log = FALSE) {
     .Call(`_Wishart_dWishart`, x, df, S, log)
 }
@@ -91,6 +98,7 @@ dWishart_mat <- function(x, df, S, log = FALSE) {
 #' @param df [double] degrees of freedom, positive
 #' @param S [matrix] a \code{d} by \code{d} positive definite scale matrix
 #' @return an array of dimension \code{d} by \code{d} by \code{n} containing the samples
+#' @export
 rWishart <- function(n, df, S) {
     .Call(`_Wishart_rWishart`, n, df, S)
 }
@@ -102,6 +110,7 @@ rWishart <- function(n, df, S) {
 #' @param b [numeric] scale parameter, strictly positive
 #' @param log [logical] if \code{TRUE} (default), returns the log density
 #' @return a vector of length \code{n}
+#' @export
 dsmnorm <- function(x, b, M, log = TRUE) {
     .Call(`_Wishart_dsmnorm`, x, b, M, log)
 }
@@ -118,6 +127,7 @@ dsmnorm_mat <- function(x, b, M, log = TRUE) {
 #' @param b [numeric] scale parameter, strictly positive
 #' @param log [logical] if \code{TRUE} (default), returns the log density
 #' @return a vector of length \code{n}
+#' @export
 dsmlnorm <- function(x, b, M, log = TRUE) {
     .Call(`_Wishart_dsmlnorm`, x, b, M, log)
 }
@@ -129,6 +139,7 @@ dsmlnorm <- function(x, b, M, log = TRUE) {
 #' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
 #' The function is defined as
 #' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
+#' @export
 mgamma <- function(x, p, log = FALSE) {
     .Call(`_Wishart_mgamma`, x, p, log)
 }
@@ -146,6 +157,7 @@ lmgamma <- function(x, p) {
 #' @param shape2 positive shape parameter, strictly larger than \eqn{(d-1)/2}.
 #' @param log [logical] if \code{TRUE} (default), returns the log density.
 #' @return a vector of length \code{n}
+#' @export
 dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
     .Call(`_Wishart_dmbeta2`, x, shape1, shape2, log)
 }
@@ -159,6 +171,7 @@ dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
 #' @param S matrix
 #' @param tol double for tolerance
 #' @param maxiter integer, the maximum number of iterations
+#' @export
 #' @return a list containing
 #' \itemize{
 #' \item \code{solution} matrix solution to Riccati's equation
@@ -166,7 +179,7 @@ dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
 #' \item \code{niter} number of iteration
 #' \item \code{convergence} bool indicating convergence (\code{TRUE}) if \code{niter < maxiter}
 #' }
-solve.Riccati <- function(M, S, tol = 1e-8, maxiter = 1e4L) {
+Riccati <- function(M, S, tol = 1e-8, maxiter = 1e4L) {
     .Call(`_Wishart_solvericcati`, M, S, tol, maxiter)
 }
 
@@ -179,7 +192,7 @@ dsmlnorm_mat <- function(x, matlog_x, b, M, matlog_M, log = TRUE) {
 #' Given a cube \code{x} and a bandwidth \code{b}, compute
 #' the leave-one-out cross validation criterion by taking out a slice
 #' and evaluating the kernel at the holdout value.
-#'
+#' @export
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
 #' @keywords internal
@@ -195,6 +208,7 @@ lcv_kern_smlnorm <- function(x, b) {
 #'
 #' @inheritParams dsmlnorm
 #' @keywords internal
+#' @export
 #' @return the value of the log objective function
 lcv_kern_Wishart <- function(x, b) {
     .Call(`_Wishart_lcvkernWishart`, x, b)
@@ -210,6 +224,7 @@ lcv_kern_Wishart <- function(x, b) {
 #' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
 #' @importFrom utils tail
 #' @import Rcpp
+#' @export
 #' @return a list with arguments
 #' \itemize{
 #' \item \code{lcv} vector of likelihood cross validation criterion
@@ -234,6 +249,7 @@ kdens_smlnorm <- function(x, pts, b, log = TRUE) {
 #' Finite sample h-block leave-one-out approximation to the least
 #' square criterion, omitting constant term.
 #' @inheritParams lcv_kern_Wishart
+#' @export
 #' @param h separation vector; only pairs that are \eqn{|i-j| \leq h} apart are considered
 #' @return a vector of length two containing the log of the summands
 lscv_kern_Wishart <- function(x, b, h = 1L) {
@@ -245,6 +261,7 @@ lscv_kern_Wishart <- function(x, b, h = 1L) {
 #' Finite sample h-block leave-one-out approximation to the least
 #' square criterion, omitting constant term.
 #' @inheritParams lcv_kern_Wishart
+#' @export
 #' @param h separation vector; only pairs that are \eqn{|i-j| \leq h}
 #'  apart are considered
 lscv_kern_smlnorm <- function(x, b, h = 1L) {

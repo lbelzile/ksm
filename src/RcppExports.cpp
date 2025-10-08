@@ -45,13 +45,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sumsignedlog
-double sumsignedlog(const arma::vec& x, LogicalVector sgn);
+double sumsignedlog(const arma::vec& x, Rcpp::LogicalVector sgn);
 RcppExport SEXP _Wishart_sumsignedlog(SEXP xSEXP, SEXP sgnSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< LogicalVector >::type sgn(sgnSEXP);
+    Rcpp::traits::input_parameter< Rcpp::LogicalVector >::type sgn(sgnSEXP);
     rcpp_result_gen = Rcpp::wrap(sumsignedlog(x, sgn));
     return rcpp_result_gen;
 END_RCPP
@@ -280,7 +280,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // kdensWishart
-NumericVector kdensWishart(const arma::cube& x, const arma::cube& pts, const double& b, bool log);
+Rcpp::NumericVector kdensWishart(const arma::cube& x, const arma::cube& pts, const double& b, bool log);
 RcppExport SEXP _Wishart_kdensWishart(SEXP xSEXP, SEXP ptsSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -294,7 +294,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // kdenssmlnorm
-NumericVector kdenssmlnorm(const arma::cube& x, const arma::cube& pts, double b, bool log);
+Rcpp::NumericVector kdenssmlnorm(const arma::cube& x, const arma::cube& pts, double b, bool log);
 RcppExport SEXP _Wishart_kdenssmlnorm(SEXP xSEXP, SEXP ptsSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -334,7 +334,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // rmnorm
-NumericMatrix rmnorm(int n, const arma::vec& mean, const arma::mat& vcov);
+Rcpp::NumericMatrix rmnorm(int n, const arma::vec& mean, const arma::mat& vcov);
 RcppExport SEXP _Wishart_rmnorm(SEXP nSEXP, SEXP meanSEXP, SEXP vcovSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
