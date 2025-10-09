@@ -76,6 +76,22 @@ rotation_scaling <- function(ang, scale) {
     .Call(`_Wishart_rotation_scaling`, ang, scale)
 }
 
+#' Multivariate gamma function
+#'
+#' @param x [vector] of points at which to evaluate the function
+#' @param p [int] dimension of the multivariate gamma function, strictly positive.
+#' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
+#' The function is defined as
+#' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
+#' @export
+mgamma <- function(x, p, log = FALSE) {
+    .Call(`_Wishart_mgamma`, x, p, log)
+}
+
+lmgamma <- function(x, p) {
+    .Call(`_Wishart_lmgamma`, x, p)
+}
+
 #' Density of Wishart random matrix
 #'
 #' @param x array of dimension \code{d} by \code{d} by \code{n}
@@ -86,6 +102,18 @@ rotation_scaling <- function(ang, scale) {
 #' @export
 dWishart <- function(x, df, S, log = FALSE) {
     .Call(`_Wishart_dWishart`, x, df, S, log)
+}
+
+#' Density of inverse Wishart random matrix
+#'
+#' @param x array of dimension \code{d} by \code{d} by \code{n}
+#' @param S symmetric positive definite matrix of dimension \code{d} by \code{d}
+#' @param df degrees of freedom
+#' @param log logical; if \code{TRUE}, returns the log density
+#' @return a vector of length \code{n} containing the log-density of the inverse Wishart.
+#' @export
+dinvWishart <- function(x, df, S, log = FALSE) {
+    .Call(`_Wishart_dinvWishart`, x, df, S, log)
 }
 
 dWishart_mat <- function(x, df, S, log = FALSE) {
@@ -101,6 +129,17 @@ dWishart_mat <- function(x, df, S, log = FALSE) {
 #' @export
 rWishart <- function(n, df, S) {
     .Call(`_Wishart_rWishart`, n, df, S)
+}
+
+#' Random matrix generation from the inverse Wishart distribution
+#'
+#' @param n [integer] sample size
+#' @param df [double] degrees of freedom, positive
+#' @param S [matrix] a \code{d} by \code{d} positive definite scale matrix
+#' @return an array of dimension \code{d} by \code{d} by \code{n} containing the samples
+#' @export
+rinvWishart <- function(n, df, S) {
+    .Call(`_Wishart_rinvWishart`, n, df, S)
 }
 
 #' Symmetric matrix-variate normal density
@@ -132,22 +171,6 @@ dsmlnorm <- function(x, b, M, log = TRUE) {
     .Call(`_Wishart_dsmlnorm`, x, b, M, log)
 }
 
-#' Multivariate gamma function
-#'
-#' @param x [vector] of points at which to evaluate the function
-#' @param p [int] dimension of the multivariate gamma function, strictly positive.
-#' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
-#' The function is defined as
-#' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
-#' @export
-mgamma <- function(x, p, log = FALSE) {
-    .Call(`_Wishart_mgamma`, x, p, log)
-}
-
-lmgamma <- function(x, p) {
-    .Call(`_Wishart_lmgamma`, x, p)
-}
-
 #' Matrix beta type II density function
 #'
 #' Given a random matrix \code{x}, compute the density
@@ -160,6 +183,19 @@ lmgamma <- function(x, p) {
 #' @export
 dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
     .Call(`_Wishart_dmbeta2`, x, shape1, shape2, log)
+}
+
+#' Random matrix generation from matrix beta type II distribution
+#'
+#' This function only supports the case of diagonal matrices
+#' @param n sample size
+#' @param d dimension of the matrix
+#' @param shape1 positive shape parameter, strictly larger than \eqn{(d-1)/2}.
+#' @param shape2 positive shape parameter, strictly larger than \eqn{(d-1)/2}.
+#' @return a cube of dimension \code{d} by \code{d} by \code{n}
+#' @export
+rmbeta2 <- function(n, d, shape1, shape2) {
+    .Call(`_Wishart_rmbeta2`, n, d, shape1, shape2)
 }
 
 #' Solver for Riccati equation
@@ -195,9 +231,20 @@ dsmlnorm_mat <- function(x, matlog_x, b, M, matlog_M, log = TRUE) {
 #' @export
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
-#' @keywords internal
 lcv_kern_smlnorm <- function(x, b) {
     .Call(`_Wishart_lcvkernsmlnorm`, x, b)
+}
+
+#' Likelihood cross validation criterion for symmetric matrix normal kernel
+#'
+#' Given a cube \code{x} and a bandwidth \code{b}, compute
+#' the leave-one-out cross validation criterion by taking out a slice
+#' and evaluating the kernel at the holdout value.
+#' @export
+#' @inheritParams dsmlnorm
+#' @return the value of the log objective function
+lcv_kern_smnorm <- function(x, b) {
+    .Call(`_Wishart_lcvkernsmnorm`, x, b)
 }
 
 #' Likelihood cross validation criterion for Wishart kernel
@@ -207,7 +254,6 @@ lcv_kern_smlnorm <- function(x, b) {
 #' and evaluating the kernel at the holdout value.
 #'
 #' @inheritParams dsmlnorm
-#' @keywords internal
 #' @export
 #' @return the value of the log objective function
 lcv_kern_Wishart <- function(x, b) {
@@ -232,16 +278,69 @@ lcv_kern_Wishart <- function(x, b) {
 #' \item \code{bandwidth} optimal bandwidth among candidates
 #' \item \code{kernel} string indicating the choice of kernel function
 #'}
-lcv_symmat <- function(x, b, kernel = "Wishart") {
+lcv_kdens_symmat <- function(x, b, kernel = "Wishart") {
     .Call(`_Wishart_lcvsymmat`, x, b, kernel)
 }
 
-kdens_Wishart <- function(x, pts, b, log = TRUE) {
-    .Call(`_Wishart_kdensWishart`, x, pts, b, log)
+#' Wishart kernel density
+#'
+#' Given a sample of \code{m} points \code{xs} from an original sample
+#' and a set of \code{n} new sample matrices \code{x} at which to evaluate the Wishart kernel, return the density with bandwidth parameter \code{b}.
+#'
+#' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+#' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+#' @param b positive double giving the bandwidth parameter
+#' @param log bool; if \code{TRUE}, return the log density
+#' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+#' @export
+kdens_Wishart <- function(x, xs, b, log = TRUE) {
+    .Call(`_Wishart_kdensWishart`, x, xs, b, log)
 }
 
-kdens_smlnorm <- function(x, pts, b, log = TRUE) {
-    .Call(`_Wishart_kdenssmlnorm`, x, pts, b, log)
+#' Symmetric matrix log-normal kernel density
+#'
+#' Given a sample of \code{m} points \code{xs} from an original sample
+#' and a set of \code{n} new sample matrices \code{x} at which to evaluate the symmetric matrix normal log kernel, return the density with bandwidth parameter \code{b}.
+#'
+#' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+#' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+#' @param b positive double giving the bandwidth parameter
+#' @param log bool; if \code{TRUE}, return the log density
+#' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+#' @export
+kdens_smlnorm <- function(x, xs, b, log = TRUE) {
+    .Call(`_Wishart_kdenssmlnorm`, x, xs, b, log)
+}
+
+#' Symmetric matrix normal kernel density
+#'
+#' Given a sample of \code{m} points \code{xs} from an original sample
+#' and a set of \code{n} new sample matrices \code{x} at which to evaluate the symmetric matrix normal kernel, return the density with bandwidth parameter \code{b}. Note that this kernel suffers from boundary spillover.
+#'
+#' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+#' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+#' @param b positive double giving the bandwidth parameter
+#' @param log bool; if \code{TRUE}, return the log density
+#' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+#' @export
+kdens_smnorm <- function(x, xs, b, log = TRUE) {
+    .Call(`_Wishart_kdenssmnorm`, x, xs, b, log)
+}
+
+#' Kernel density estimators for symmetric matrices
+#'
+#' Given a sample of \code{m} points \code{xs} from an original sample
+#' and a set of \code{n} new sample symmetric positive definite matrices \code{x} at which to evaluate the kernel, return the density with bandwidth parameter \code{b}.
+#'
+#' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+#' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+#' @param b positive double giving the bandwidth parameter
+#' @param kernel string, one of \code{Wishart}, \code{smnorm} or \code{smlnorm}.
+#' @param log bool; if \code{TRUE}, return the log density
+#' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+#' @export
+kdens_symmat <- function(x, xs, kernel = "Wishart", b = 1, log = TRUE) {
+    .Call(`_Wishart_kdens_symmat`, x, xs, kernel, b, log)
 }
 
 #' Least square cross validation criterion for Wishart kernel
@@ -282,5 +381,43 @@ lscv_kern_smlnorm <- function(x, b, h = 1L) {
 #' rmnorm(n = 10, mean = c(0, 2), vcov = diag(2))
 rmnorm <- function(n, mean, vcov) {
     .Call(`_Wishart_rmnorm`, n, mean, vcov)
+}
+
+#' Target densities for simulation study
+#' @param x cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
+#' @param model integer between 1 and 6 indicating the simulation scenario
+#' @export
+#' @return a vector of length \code{n} containing the density
+#' @keywords internal
+simu_fdens2d <- function(x, model) {
+    .Call(`_Wishart_fdens`, x, model)
+}
+
+#' Target densities for simulation study
+#' @param n sample size
+#' @param model integer between 1 and 6 indicating the simulation scenario
+#' @export
+#' @return a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
+#' @keywords internal
+simu_rdens2d <- function(n, model) {
+    .Call(`_Wishart_rdens`, n, model)
+}
+
+#' Target densities for simulation study
+#'
+#' Given a target density and a kernel estimator, evaluate the
+#' integrated squared error by Monte Carlo integration by simulating
+#' from uniform variates on the hypercube.
+#' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices at which to evaluate the kernel density
+#' @param xs a cube of dimension \code{d} by \code{d} by \code{m} of points used to construct the kernel density estimators
+#' @param b positive double, bandwidth parameter
+#' @param model integer between 1 and 6 indicating the simulation scenario
+#' @param B number of Monte Carlo replications, default to 10K
+#' @param delta double less than 1; the integrals on \eqn{[0, \infty)} are truncated to \eqn{[\delta, 1/\delta]}.
+#' @export
+#' @return a vector of length 2 containing the mean and the standard deviation of the estimator.
+#' @keywords internal
+simu_ise_montecarlo <- function(x, xs, b, kernel, model, B = 10000L, delta = 0.001) {
+    .Call(`_Wishart_ise_montecarlo`, x, xs, b, kernel, model, B, delta)
 }
 

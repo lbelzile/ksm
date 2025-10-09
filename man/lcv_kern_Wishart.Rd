@@ -19,4 +19,3 @@ Given a cube \code{x} and a bandwidth \code{b}, compute
 the leave-one-out cross validation criterion by taking out a slice
 and evaluating the kernel at the holdout value.
 }
-\keyword{internal}

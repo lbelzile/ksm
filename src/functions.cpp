@@ -148,6 +148,42 @@ arma::mat rotation_scaling(arma::vec ang, arma::vec scale){
   }
 }
 
+//' Multivariate gamma function
+//'
+//' @param x [vector] of points at which to evaluate the function
+//' @param p [int] dimension of the multivariate gamma function, strictly positive.
+//' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
+//' The function is defined as
+//' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
+//' @export
+// [[Rcpp::export]]
+ arma::vec mgamma(const arma::vec &x, int p, bool log = false){
+   if(p < 1){
+     Rcpp::stop("Invalid argument\"p\": must be a positive integer.");
+   }
+   arma::vec out(x.n_elem, arma::fill::value(0.25 * p * (p - 1) * std::log(arma::datum::pi)));
+   for(int i = 1; i <= p; i++){
+     out += arma::lgamma(x + 0.5 * (1 - i));
+   }
+   if(log){
+     return out;
+   } else{
+     return arma::exp(out);
+   }
+ }
+
+// [[Rcpp::export]]
+double lmgamma(double x, arma::uword p){
+  if(p < 1){
+    Rcpp::stop("Invalid argument\"p\": must be a positive integer.");
+  }
+  double out = 0.25 * p * (p - 1) * std::log(arma::datum::pi);
+  for(arma::uword i = 0; i < p; i++){
+    out += std::lgamma(x - 0.5 * i);
+  }
+  return out;
+}
+
 
 //' Density of Wishart random matrix
 //'
@@ -158,7 +194,7 @@ arma::mat rotation_scaling(arma::vec ang, arma::vec scale){
 //' @return a vector of length \code{n} containing the log-density of the Wishart.
 //' @export
 // [[Rcpp::export('dWishart')]]
-arma::vec dWishart(const arma::cube &x, double df, const arma::mat &S, bool log = false){
+arma::vec dWishart(const arma::cube &x,double df, const arma::mat &S, bool log = false){
   arma::uword n = x.n_slices;
   arma::uword d = x.n_rows;
     if((x.n_cols != d) | (d != S.n_rows) | (d != S.n_cols)){
@@ -190,6 +226,42 @@ arma::vec dWishart(const arma::cube &x, double df, const arma::mat &S, bool log 
     return arma::exp(logdens);
   }
 }
+
+
+//' Density of inverse Wishart random matrix
+//'
+//' @param x array of dimension \code{d} by \code{d} by \code{n}
+//' @param S symmetric positive definite matrix of dimension \code{d} by \code{d}
+//' @param df degrees of freedom
+//' @param log logical; if \code{TRUE}, returns the log density
+//' @return a vector of length \code{n} containing the log-density of the inverse Wishart.
+//' @export
+// [[Rcpp::export('dinvWishart')]]
+ arma::vec dinvWishart(const arma::cube &x, double df, const arma::mat &S, bool log = false){
+   arma::uword n = x.n_slices;
+   arma::uword d = x.n_rows;
+   if((x.n_cols != d) | (d != S.n_rows) | (d != S.n_cols)){
+     Rcpp::stop("Non conformal size for \"S\" and sample \"x\": the latter should be an d by d by n cube, and S a square d by d matrix.");
+   }
+   if(!S.is_sympd()){
+     Rcpp::stop("\"S\" is not positive definite.");
+   }
+   if(df < (double) (d - 1)){
+     Rcpp::stop("Invalid degrees of freedom \"df\".");
+   }
+   arma::vec logdens(n);
+   double logdetS = arma::log_det_sympd(S);
+   double cst = 0.5 * df * logdetS - lmgamma(0.5 * df, d) - 0.5 * d * df * std::log(2);
+   for(arma::uword i=0; i<n; i++){
+     logdens(i) = cst - 0.5 * (df + d + 1) * arma::log_det_sympd(x.slice(i)) -
+       0.5 * arma::trace(arma::solve(x.slice(i), S, arma::solve_opts::likely_sympd));
+   }
+   if(log){
+     return logdens;
+   } else{
+     return arma::exp(logdens);
+   }
+ }
 
 // [[Rcpp::export('dWishart_mat')]]
 double dWishart_mat(const arma::mat &x, double df, const arma::mat &S, bool log = false){
@@ -244,6 +316,35 @@ arma::cube rWishart(int n, double df, const arma::mat &S){
    return x;
 }
 
+//' Random matrix generation from the inverse Wishart distribution
+//'
+//' @param n [integer] sample size
+//' @param df [double] degrees of freedom, positive
+//' @param S [matrix] a \code{d} by \code{d} positive definite scale matrix
+//' @return an array of dimension \code{d} by \code{d} by \code{n} containing the samples
+//' @export
+// [[Rcpp::export('rinvWishart')]]
+ arma::cube rinvWishart(int n, double df, const arma::mat &S){
+   arma::uword d = S.n_cols;
+   if(d != S.n_rows){
+     Rcpp::stop("\"S\" should be a square d by d matrix.");
+   }
+   if(!S.is_sympd()){
+     Rcpp::stop("\"S\" is not positive definite.");
+   }
+   if(df < (d - 1.0)){
+     Rcpp::stop("Invalid degrees of freedom \"df\".");
+   }
+   arma::cube x(d, d, n);
+   if(n < 1) {
+     Rcpp::stop("Sample size must be positive.");
+   }
+   for(int i = 0; i < n; i++){
+     x.slice(i) = iwishrnd(S, df);
+   }
+   return x;
+ }
+
 //' Symmetric matrix-variate normal density
 //'
 //' @param x [cube] array of dimension \code{d} by \code{d} by \code{n}
@@ -253,7 +354,11 @@ arma::cube rWishart(int n, double df, const arma::mat &S){
 //' @return a vector of length \code{n}
 //' @export
 // [[Rcpp::export]]
-arma::vec dsmnorm(const arma::cube &x, double b, const arma::mat &M, bool log = true){
+arma::vec dsmnorm(
+    const arma::cube &x,
+    double b,
+    const arma::mat &M,
+    bool log = true){
   arma::uword n = x.n_slices;
   arma::uword d = x.n_rows;
   if((x.n_cols != d) | (d != M.n_rows) | (d != M.n_cols)){
@@ -281,7 +386,11 @@ arma::vec dsmnorm(const arma::cube &x, double b, const arma::mat &M, bool log = 
 }
 
 // [[Rcpp::export]]
-double dsmnorm_mat(const arma::mat &x, double b, const arma::mat &M, bool log = true){
+double dsmnorm_mat(
+    const arma::mat &x,
+    double b,
+    const arma::mat &M,
+    bool log = true){
   int d = x.n_rows;
   if(b <= 0){
     Rcpp::stop("\"b\" must be a positive scale.");
@@ -357,42 +466,6 @@ arma::vec dsmlnorm(
    }
  }
 
-//' Multivariate gamma function
-//'
-//' @param x [vector] of points at which to evaluate the function
-//' @param p [int] dimension of the multivariate gamma function, strictly positive.
-//' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
-//' The function is defined as
-//' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
-//' @export
-// [[Rcpp::export]]
-arma::vec mgamma(const arma::vec &x, int p, bool log = false){
- if(p < 1){
-   Rcpp::stop("Invalid argument\"p\": must be a positive integer.");
- }
- arma::vec out(x.n_elem, arma::fill::value(0.25 * p * (p - 1) * std::log(arma::datum::pi)));
- for(int i = 1; i <= p; i++){
-  out += arma::lgamma(x + 0.5 * (1 - i));
- }
- if(log){
-   return out;
- } else{
-   return arma::exp(out);
- }
-}
-
-// [[Rcpp::export]]
-double lmgamma(double x, arma::uword p){
-  if(p < 1){
-    Rcpp::stop("Invalid argument\"p\": must be a positive integer.");
-  }
-  double out = 0.25 * p * (p - 1) * std::log(arma::datum::pi);
-  for(arma::uword i = 0; i < p; i++){
-    out += std::lgamma(x - 0.5 * i);
-  }
-  return out;
-}
-
 //' Matrix beta type II density function
 //'
 //' Given a random matrix \code{x}, compute the density
@@ -404,7 +477,11 @@ double lmgamma(double x, arma::uword p){
 //' @return a vector of length \code{n}
 //' @export
 // [[Rcpp::export]]
-arma::vec dmbeta2(const arma::cube &x, double shape1, double shape2, bool log = true) {
+arma::vec dmbeta2(
+    const arma::cube &x,
+    double shape1,
+    double shape2,
+    bool log = true) {
   arma::uword d = x.n_rows;
   arma::uword n = x.n_slices;
   if((d != x.n_cols) | (shape1 < (0.5 * (d - 1.0))) | (shape2 < (0.5 * (d - 1.0)))){
@@ -422,6 +499,37 @@ arma::vec dmbeta2(const arma::cube &x, double shape1, double shape2, bool log = 
     return arma::exp(logdens);
   }
 }
+
+//' Random matrix generation from matrix beta type II distribution
+//'
+//' This function only supports the case of diagonal matrices
+//' @param n sample size
+//' @param d dimension of the matrix
+//' @param shape1 positive shape parameter, strictly larger than \eqn{(d-1)/2}.
+//' @param shape2 positive shape parameter, strictly larger than \eqn{(d-1)/2}.
+//' @return a cube of dimension \code{d} by \code{d} by \code{n}
+//' @export
+// [[Rcpp::export]]
+arma::cube rmbeta2(
+    int n,
+    int d,
+    double shape1,
+    double shape2) {
+  if (((2 * shape2) <= (d - 1)) | ((2 * shape1) <= (d - 1))) {
+    Rcpp::stop("\"shape1\" and \"shape2\" must be larger than (d-1)/2.");
+  }
+  arma::cube A1 = rWishart(n, 2 * shape1, arma::eye(d,d));
+  // arma::cube A2 = rWishart(n, 2 * shape2, arma::eye(d,d));
+  arma::mat sqrtA1(d,d);
+  for(int i = 0; i < n; i ++){
+    sqrtA1 = sqrtmat_sympd(A1.slice(i));
+    // Normally, one would invert A2
+    A1.slice(i) = sqrtA1 * arma::iwishrnd(arma::eye(d,d), 2*shape2) * sqrtA1;
+    // A1.slice(i) = sqrtA1 * arma::inv_sympd(A2) * sqrtA1;
+  }
+  return A1;
+}
+
 //' Solver for Riccati equation
 //'
 //' Given two matrices \code{M} and \code{S}, solve Riccati equation by iterative updating to find the solution \eqn{\mathbf{R}}, where the latter satisfies
@@ -517,7 +625,6 @@ double dsmlnorm_mat(
 //' @export
 //' @inheritParams dsmlnorm
 //' @return the value of the log objective function
-//' @keywords internal
 // [[Rcpp::export(lcv_kern_smlnorm)]]
 double lcvkernsmlnorm(const arma::cube &x, const double &b){
   arma::uword n = x.n_slices;
@@ -569,6 +676,38 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b){
 }
 
 
+//' Likelihood cross validation criterion for symmetric matrix normal kernel
+//'
+//' Given a cube \code{x} and a bandwidth \code{b}, compute
+//' the leave-one-out cross validation criterion by taking out a slice
+//' and evaluating the kernel at the holdout value.
+//' @export
+//' @inheritParams dsmlnorm
+//' @return the value of the log objective function
+// [[Rcpp::export(lcv_kern_smnorm)]]
+double lcvkernsmnorm(const arma::cube &x, const double &b){
+   arma::uword n = x.n_slices;
+   arma::uword d = x.n_cols;
+   arma::vec loo(n - 1);
+   double logcrit = 0;
+   int it;
+   double logcst;
+   logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
+   for(arma::uword k = 0; k < n; k++){
+     it = 0;
+     for(arma::uword j = 0; j < n; j++){
+       if(k != j){
+         loo(it) = - arma::accu(arma::pow(x.slice(k) - x.slice(j), 2.0)) * 0.5  / b;
+         it++;
+       }
+     }
+     logcrit += meanlog(loo);
+   }
+   logcrit = logcrit / n - logcst;
+   return logcrit;
+ }
+
+
 //' Likelihood cross validation criterion for Wishart kernel
 //'
 //' Given a cube \code{x} and a bandwidth \code{b}, compute
@@ -576,7 +715,6 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b){
 //' and evaluating the kernel at the holdout value.
 //'
 //' @inheritParams dsmlnorm
-//' @keywords internal
 //' @export
 //' @return the value of the log objective function
 // [[Rcpp::export(lcv_kern_Wishart)]]
@@ -605,7 +743,6 @@ double lcvkernWishart(const arma::cube &x, const double &b){
      Sinv = arma::inv_sympd(x.slice(k));
      for(arma::uword j = 0; j < n; j++){
        if(k != j){
-         // TODO: finish this to avoid recomputing unnecessarily everything
          // Determinants can be recycled
        loo(it) =  0.5 / b * (logdetx(j)  - arma::accu(Sinv % x.slice(j))) + logcst - bandwidth * 0.5 * logdetx(k);
       it++;
@@ -635,7 +772,7 @@ double lcvkernWishart(const arma::cube &x, const double &b){
 //' \item \code{bandwidth} optimal bandwidth among candidates
 //' \item \code{kernel} string indicating the choice of kernel function
 //'}
-// [[Rcpp::export(lcv_symmat)]]
+// [[Rcpp::export(lcv_kdens_symmat)]]
 Rcpp::List lcvsymmat(
     const arma::cube &x,
     const arma::vec b,
@@ -650,6 +787,10 @@ Rcpp::List lcvsymmat(
    for(int i = 0; i < nl; i++){
      crit[i] = lcvkernsmlnorm(x, b(i));
    }
+ } else if(kernel == "smnorm"){
+   for(int i = 0; i < nl; i++){
+     crit[i] = lcvkernsmnorm(x, b(i));
+   }
  } else{
   Rcpp::stop("Invalid kernel choice.");
  }
@@ -662,20 +803,32 @@ Rcpp::List lcvsymmat(
  );
 }
 
+
+//' Wishart kernel density
+//'
+//' Given a sample of \code{m} points \code{xs} from an original sample
+//' and a set of \code{n} new sample matrices \code{x} at which to evaluate the Wishart kernel, return the density with bandwidth parameter \code{b}.
+//'
+//' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+//' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+//' @param b positive double giving the bandwidth parameter
+//' @param log bool; if \code{TRUE}, return the log density
+//' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+//' @export
 // [[Rcpp::export(kdens_Wishart)]]
 Rcpp::NumericVector kdensWishart(
     const arma::cube &x,
-    const arma::cube &pts,
+    const arma::cube &xs,
     const double &b,
     bool log = true){
   arma::uword d = x.n_rows;// [[Rcpp::export]]
   arma::uword n = x.n_slices;
-  arma::uword m = pts.n_slices;
+  arma::uword m = xs.n_slices;
   arma::vec logdet_x(n);
-  arma::vec logdet_pts(m);
-  // pts = b * pts;
-  if((x.n_cols != d) | (pts.n_cols != d) | (pts.n_rows != d)){
-   Rcpp::stop("Invalid dimensions for \"x\" or \"pts\".");
+  arma::vec logdet_xs(m);
+  // xs = b * xs;
+  if((x.n_cols != d) | (xs.n_cols != d) | (xs.n_rows != d)){
+   Rcpp::stop("Invalid dimensions for \"x\" or \"xs\".");
   }
   if(b <= 0){
    Rcpp::stop("Invalid bandwidth parameter: must be strictly positive.");
@@ -688,7 +841,7 @@ Rcpp::NumericVector kdensWishart(
     logdet_x(i) = arma::log_det_sympd(x.slice(i));
   }
   for(arma::uword k = 0; k < m; k++){
-    logdet_pts(k) = arma::log_det_sympd(pts.slice(k));
+    logdet_xs(k) = arma::log_det_sympd(xs.slice(k));
   }
   arma::mat Sinv(d,d);
   double logcst = 0;
@@ -703,7 +856,7 @@ Rcpp::NumericVector kdensWishart(
     for(arma::uword j = 0; j < m; j++){
         // TODO: finish this to avoid recomputing unnecessarily everything
         // Determinants can be recycled
-        logdens_k(j) =  0.5 / b * (logdet_pts(j)  - arma::accu(Sinv % pts.slice(j))) + logcst - bandwidth * 0.5 * logdet_x(k);
+        logdens_k(j) =  0.5 / b * (logdet_xs(j)  - arma::accu(Sinv % xs.slice(j))) + logcst - bandwidth * 0.5 * logdet_x(k);
     }
   logdens[k] = meanlog(logdens_k);
   }
@@ -717,15 +870,15 @@ Rcpp::NumericVector kdensWishart(
 
 // NumericVector kdensWishart(
 //     const arma::cube &x,
-//     const arma::cube &pts,
+//     const arma::cube &xs,
 //     const double &b,
 //     bool log = true){
 //   arma::uword d = x.n_rows;// [[Rcpp::export]]
 //   arma::uword n = x.n_slices;
-//   arma::uword m = pts.n_slices;
-//   // pts = b * pts;
-//   if((x.n_cols != d) | (pts.n_cols != d) | (pts.n_rows != d)){
-//     Rcpp::stop("Invalid dimensions for \"x\" or \"pts\".");
+//   arma::uword m = xs.n_slices;
+//   // xs = b * xs;
+//   if((x.n_cols != d) | (xs.n_cols != d) | (xs.n_rows != d)){
+//     Rcpp::stop("Invalid dimensions for \"x\" or \"xs\".");
 //   }
 //   if(b <= 0){
 //     Rcpp::stop("Invalid bandwidth parameter: must be strictly positive.");
@@ -737,7 +890,7 @@ Rcpp::NumericVector kdensWishart(
 //     logdens_k.zeros();
 //     for(arma::uword j = 0; j < m; j++){
 //       logdens_k(j) = dWishart_mat(
-//         pts.slice(j),
+//         xs.slice(j),
 //         band,
 //         b * x.slice(i),
 //         true);
@@ -751,18 +904,28 @@ Rcpp::NumericVector kdensWishart(
 //   }
 // }
 
-
+//' Symmetric matrix log-normal kernel density
+//'
+//' Given a sample of \code{m} points \code{xs} from an original sample
+//' and a set of \code{n} new sample matrices \code{x} at which to evaluate the symmetric matrix normal log kernel, return the density with bandwidth parameter \code{b}.
+//'
+//' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+//' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+//' @param b positive double giving the bandwidth parameter
+//' @param log bool; if \code{TRUE}, return the log density
+//' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+//' @export
 // [[Rcpp::export(kdens_smlnorm)]]
 Rcpp::NumericVector kdenssmlnorm(
     const arma::cube &x,
-    const arma::cube &pts,
+    const arma::cube &xs,
     double b,
     bool log = true){
   arma::uword d = x.n_rows;
   arma::uword n = x.n_slices;
-  arma::uword m = pts.n_slices;
-  if((x.n_cols != d) | (pts.n_cols != d) | (pts.n_rows != d)){
-    Rcpp::stop("Invalid dimensions for \"x\" or \"pts\".");
+  arma::uword m = xs.n_slices;
+  if((x.n_cols != d) | (xs.n_cols != d) | (xs.n_rows != d)){
+    Rcpp::stop("Invalid dimensions for \"x\" or \"xs\".");
   }
   Rcpp::NumericVector logdens(n);
 
@@ -795,16 +958,16 @@ Rcpp::NumericVector kdenssmlnorm(
   logdens[k] = logjac;
   }
   arma::vec logdens_k(m);
-  arma::cube logmat_pts = pts;
+  arma::cube logmat_xs = xs;
   for(arma::uword j = 0; j < m; j++){
-    logmat_pts.slice(j) = arma::logmat_sympd(pts.slice(j));
+    logmat_xs.slice(j) = arma::logmat_sympd(xs.slice(j));
   }
   arma::mat logmat_x_i(d,d);
   for(arma::uword i = 0; i < n; i++){
     logdens_k.zeros();
     logmat_x_i = arma::logmat_sympd(x.slice(i));
     for(arma::uword j = 0; j < m; j++){
-      logdens_k(j) = - accu(arma::pow(logmat_x_i - logmat_pts.slice(j), 2.0)) / (2.0 * b);
+      logdens_k(j) = - accu(arma::pow(logmat_x_i - logmat_xs.slice(j), 2.0)) / (2.0 * b);
     }
     logdens[i] = logdens[i] + meanlog(logdens_k) - logcst;
   }
@@ -814,27 +977,98 @@ Rcpp::NumericVector kdenssmlnorm(
     return Rcpp::exp(logdens);
   }
 }
-// LSCV
-// Numerical integration
+
+//' Symmetric matrix normal kernel density
+//'
+//' Given a sample of \code{m} points \code{xs} from an original sample
+//' and a set of \code{n} new sample matrices \code{x} at which to evaluate the symmetric matrix normal kernel, return the density with bandwidth parameter \code{b}. Note that this kernel suffers from boundary spillover.
+//'
+//' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+//' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+//' @param b positive double giving the bandwidth parameter
+//' @param log bool; if \code{TRUE}, return the log density
+//' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+//' @export
+// [[Rcpp::export(kdens_smnorm)]]
+Rcpp::NumericVector kdenssmnorm(
+    const arma::cube &x,
+    const arma::cube &xs,
+    double b,
+    bool log = true){
+  arma::uword d = x.n_rows;
+  arma::uword n = x.n_slices;
+  arma::uword m = xs.n_slices;
+  if((x.n_cols != d) | (xs.n_cols != d) | (xs.n_rows != d)){
+    Rcpp::stop("Invalid dimensions for \"x\" or \"xs\".");
+  }
+  Rcpp::NumericVector logdens(n);
+  double logcst;
+  logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
+  arma::vec logdens_i(m);
+  for(arma::uword i = 0; i < n; i++){
+    logdens_i.zeros();
+    for(arma::uword j = 0; j < m; j++){
+      logdens_i(j) = - arma::accu(arma::pow(x.slice(i) - xs.slice(j), 2.0)) / (2.0 * b);
+    }
+    logdens[i] = meanlog(logdens_i) - logcst;
+  }
+  if(log){
+    return logdens;
+  } else{
+    return Rcpp::exp(logdens);
+  }
+}
+
+
+//' Kernel density estimators for symmetric matrices
+//'
+//' Given a sample of \code{m} points \code{xs} from an original sample
+//' and a set of \code{n} new sample symmetric positive definite matrices \code{x} at which to evaluate the kernel, return the density with bandwidth parameter \code{b}.
+//'
+//' @param x cube of size \code{d} by \code{d} by \code{n} of points at which to evaluate the density
+//' @param xs cube of size \code{d} by \code{d} by \code{m} of sample matrices which are used to construct the kernel
+//' @param b positive double giving the bandwidth parameter
+//' @param kernel string, one of \code{Wishart}, \code{smnorm} or \code{smlnorm}.
+//' @param log bool; if \code{TRUE}, return the log density
+//' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
+//' @export
+// [[Rcpp::export(kdens_symmat)]]
+Rcpp::NumericVector kdens_symmat(
+    const arma::cube &x,
+    const arma::cube &xs,
+    std::string kernel = "Wishart",
+    double b = 1,
+    bool log = true){
+  if(kernel == "Wishart"){
+   return kdensWishart(x, xs, b, log);
+  } else if(kernel == "smnorm"){
+    return kdenssmnorm(x, xs, b, log);
+  } else if(kernel == "smlnorm"){
+    return kdenssmlnorm(x, xs, b, log);
+  } else{
+   Rcpp::stop("Invalid kernel selection.");
+  }
+}
+
 
 //
 //
 // NumericVector kdenssmlnormback(
 //     const arma::cube &x,
-//     const arma::cube &pts,
+//     const arma::cube &xs,
 //     double b,
 //     bool log = true){
 //   arma::uword d = x.n_rows;
 //   arma::uword n = x.n_slices;
-//   arma::uword m = pts.n_slices;
-//   if((x.n_cols != d) | (pts.n_cols != d) | (pts.n_rows != d)){
-//     Rcpp::stop("Invalid dimensions for \"x\" or \"pts\".");
+//   arma::uword m = xs.n_slices;
+//   if((x.n_cols != d) | (xs.n_cols != d) | (xs.n_rows != d)){
+//     Rcpp::stop("Invalid dimensions for \"x\" or \"xs\".");
 //   }
 //   Rcpp::NumericVector logdens(n);
 //   arma::vec logdens_k(m);
-//   arma::cube logmat_pts = pts;
+//   arma::cube logmat_xs = xs;
 //   for(arma::uword j = 0; j < m; j++){
-//     logmat_pts.slice(j) = arma::logmat_sympd(pts.slice(j));
+//     logmat_xs.slice(j) = arma::logmat_sympd(xs.slice(j));
 //   }
 //   arma::mat logmat_x_i(d,d);
 //   for(arma::uword i = 0; i < n; i++){
@@ -845,8 +1079,8 @@ Rcpp::NumericVector kdenssmlnorm(
 //         x.slice(i),
 //         logmat_x_i,
 //         b,
-//         pts.slice(j),
-//         logmat_pts.slice(j),
+//         xs.slice(j),
+//         logmat_xs.slice(j),
 //         true);
 //     }
 //     logdens[i] = meanlog(logdens_k);
@@ -1054,3 +1288,142 @@ Rcpp::NumericMatrix rmnorm(
    }
    return Rcpp::as<Rcpp::NumericMatrix>(Rcpp::wrap(samp));
  }
+
+
+//' Target densities for simulation study
+//' @param x cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
+//' @param model integer between 1 and 6 indicating the simulation scenario
+//' @export
+//' @return a vector of length \code{n} containing the density
+//' @keywords internal
+// [[Rcpp::export(simu_fdens2d)]]
+Rcpp::NumericVector fdens(const arma::cube &x, const int &model){
+  arma::vec res(x.n_slices);
+  if (model == 1) {
+    arma::mat S1(2,2,arma::fill::eye);
+    arma::mat S2(2,2,arma::fill::eye);
+    S1(0,1) = S1(1,0) = 0.1;
+    S2(0,1) = S2(1,0) = -0.9;
+    res = 0.5 * dWishart(x, 4, S1, false) + 0.5 * dWishart(x, 5, S2, false);
+  } else if(model == 2){
+    arma::mat S3(2,2,arma::fill::zeros);
+    arma::mat S4(2,2,arma::fill::eye);
+    S4(0,1) = S4(1,0) = -0.5;
+    S3(0,0) = S3(1,1) = 0.5;
+    res = 0.5 * dWishart(x, 5, S3, false) + 0.5 * dWishart(x, 6, S4, false);
+  } else if(model == 3){
+    arma::mat S2(2,2,arma::fill::eye);
+    S2(0,1) = S2(1,0) = -0.9;
+    res = dinvWishart(x, 5, S2, false);
+  } else if(model == 4){
+    arma::mat S4(2,2,arma::fill::eye);
+    S4(0,1) = S4(1,0) = -0.5;
+    res = dinvWishart(x, 6, S4, false);
+  } else if(model == 5){
+    res = dmbeta2(x, 2, 2, false);
+  } else if(model == 6){
+    res = dmbeta2(x, 3, 3, false);
+  } else{
+    Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
+  }
+  return Rcpp::NumericVector(Rcpp::wrap(res));
+}
+
+//' Target densities for simulation study
+//' @param n sample size
+//' @param model integer between 1 and 6 indicating the simulation scenario
+//' @export
+//' @return a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
+//' @keywords internal
+// [[Rcpp::export(simu_rdens2d)]]
+arma::cube rdens(int n, const int &model){
+  if (model == 1) {
+    arma::mat S1(2,2,arma::fill::eye);
+    arma::mat S2(2,2,arma::fill::eye);
+    S1(0,1) = S1(1,0) = 0.1;
+    S2(0,1) = S2(1,0) = -0.9;
+    int m = Rcpp::rbinom(1, n, 0.5)[0];
+    arma::cube x(2,2,n);
+    x.slices(0, m - 1) = rWishart(m, 4, S1);
+    x.slices(m, n - 1) = rWishart(n - m, 5, S2);
+    return x.slices(arma::randperm(n));
+  } else if(model == 2){
+    arma::mat S3(2,2,arma::fill::zeros);
+    arma::mat S4(2,2,arma::fill::eye);
+    S4(0,1) = S4(1,0) = -0.5;
+    S3(0,0) = S3(1,1) = 0.5;
+    int m = Rcpp::rbinom(1, n, 0.5)[0];
+    arma::cube x(2,2,n);
+    x.slices(0, m - 1) = rWishart(m, 5, S3);
+    x.slices(m, n - 1) = rWishart(n - m, 6, S4);
+    return x.slices(arma::randperm(n));
+  } else if(model == 3){
+    arma::mat S2(2,2,arma::fill::eye);
+    S2(0,1) = S2(1,0) = -0.9;
+    return rinvWishart(n, 5, S2);
+  } else if(model == 4){
+    arma::mat S4(2,2,arma::fill::eye);
+    S4(0,1) = S4(1,0) = -0.5;
+    return rinvWishart(n, 6, S4);
+  } else if(model == 5){
+    return rmbeta2(n, 2, 2, 2);
+  } else if(model == 6){
+    return rmbeta2(n, 2, 3, 3);
+  } else{
+    Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
+  }
+}
+
+//' Target densities for simulation study
+//'
+//' Given a target density and a kernel estimator, evaluate the
+//' integrated squared error by Monte Carlo integration by simulating
+//' from uniform variates on the hypercube.
+//' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices at which to evaluate the kernel density
+//' @param xs a cube of dimension \code{d} by \code{d} by \code{m} of points used to construct the kernel density estimators
+//' @param b positive double, bandwidth parameter
+//' @param model integer between 1 and 6 indicating the simulation scenario
+//' @param B number of Monte Carlo replications, default to 10K
+//' @param delta double less than 1; the integrals on \eqn{[0, \infty)} are truncated to \eqn{[\delta, 1/\delta]}.
+//' @export
+//' @return a vector of length 2 containing the mean and the standard deviation of the estimator.
+//' @keywords internal
+// [[Rcpp::export(simu_ise_montecarlo)]]
+Rcpp::NumericVector ise_montecarlo(
+    const arma::cube &x,
+    const arma::cube &xs,
+    double b,
+    std::string kernel,
+    const int &model,
+    int B = 10000,
+    double delta = 0.001){
+  const double pi = arma::datum::pi;
+  arma::uword d = x.n_cols;
+  Rcpp::NumericVector res(2);
+  int m = std::floor(B / 10);
+  Rcpp::NumericVector res_v(10);
+  arma::cube mcsamp(d, d, m);
+  Rcpp::NumericVector jac(m);
+  if(delta > 1){
+    Rcpp::stop("Invalid argument for \"delta\".");
+  }
+  if(d == 2){
+    double cst = (2 * pi * std::pow(1/delta - delta, 2.0));
+    arma::vec ang(1);
+    arma::vec scale(2);
+    for(int j = 0; j < 10; j++){
+      for(int i = 0; i < m; i++){
+        ang = arma::randu(1, arma::distr_param(0.0, 2.0 * pi)),
+          scale = arma::randu(2, arma::distr_param(delta, 1/delta));
+        mcsamp.slice(i) = rotation_scaling(ang, scale);
+        jac[i] = std::abs(scale(0) - scale(1));
+      }
+      res_v[j] =  Rcpp::mean(jac * Rcpp::pow(kdens_symmat(mcsamp, x, kernel, b, false) - fdens(mcsamp, model), 2.0)) * 0.25 / cst;
+    }
+    res[0] = Rcpp::mean(res_v);
+    res[1] = Rcpp::sd(res_v) / std::sqrt(10.0);
+    return res;
+  } else{
+   Rcpp::stop("3D version not implemented");
+  }
+}

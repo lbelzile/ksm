@@ -90,6 +90,31 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// mgamma
+arma::vec mgamma(const arma::vec& x, int p, bool log);
+RcppExport SEXP _Wishart_mgamma(SEXP xSEXP, SEXP pSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type p(pSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(mgamma(x, p, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// lmgamma
+double lmgamma(double x, arma::uword p);
+RcppExport SEXP _Wishart_lmgamma(SEXP xSEXP, SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(lmgamma(x, p));
+    return rcpp_result_gen;
+END_RCPP
+}
 // dWishart
 arma::vec dWishart(const arma::cube& x, double df, const arma::mat& S, bool log);
 RcppExport SEXP _Wishart_dWishart(SEXP xSEXP, SEXP dfSEXP, SEXP SSEXP, SEXP logSEXP) {
@@ -101,6 +126,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type S(SSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
     rcpp_result_gen = Rcpp::wrap(dWishart(x, df, S, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// dinvWishart
+arma::vec dinvWishart(const arma::cube& x, double df, const arma::mat& S, bool log);
+RcppExport SEXP _Wishart_dinvWishart(SEXP xSEXP, SEXP dfSEXP, SEXP SSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type S(SSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(dinvWishart(x, df, S, log));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -128,6 +167,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type df(dfSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type S(SSEXP);
     rcpp_result_gen = Rcpp::wrap(rWishart(n, df, S));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rinvWishart
+arma::cube rinvWishart(int n, double df, const arma::mat& S);
+RcppExport SEXP _Wishart_rinvWishart(SEXP nSEXP, SEXP dfSEXP, SEXP SSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< double >::type df(dfSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type S(SSEXP);
+    rcpp_result_gen = Rcpp::wrap(rinvWishart(n, df, S));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -173,31 +225,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mgamma
-arma::vec mgamma(const arma::vec& x, int p, bool log);
-RcppExport SEXP _Wishart_mgamma(SEXP xSEXP, SEXP pSEXP, SEXP logSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< int >::type p(pSEXP);
-    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(mgamma(x, p, log));
-    return rcpp_result_gen;
-END_RCPP
-}
-// lmgamma
-double lmgamma(double x, arma::uword p);
-RcppExport SEXP _Wishart_lmgamma(SEXP xSEXP, SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::uword >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(lmgamma(x, p));
-    return rcpp_result_gen;
-END_RCPP
-}
 // dmbeta2
 arma::vec dmbeta2(const arma::cube& x, double shape1, double shape2, bool log);
 RcppExport SEXP _Wishart_dmbeta2(SEXP xSEXP, SEXP shape1SEXP, SEXP shape2SEXP, SEXP logSEXP) {
@@ -209,6 +236,20 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type shape2(shape2SEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
     rcpp_result_gen = Rcpp::wrap(dmbeta2(x, shape1, shape2, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rmbeta2
+arma::cube rmbeta2(int n, int d, double shape1, double shape2);
+RcppExport SEXP _Wishart_rmbeta2(SEXP nSEXP, SEXP dSEXP, SEXP shape1SEXP, SEXP shape2SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< int >::type d(dSEXP);
+    Rcpp::traits::input_parameter< double >::type shape1(shape1SEXP);
+    Rcpp::traits::input_parameter< double >::type shape2(shape2SEXP);
+    rcpp_result_gen = Rcpp::wrap(rmbeta2(n, d, shape1, shape2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -254,6 +295,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lcvkernsmnorm
+double lcvkernsmnorm(const arma::cube& x, const double& b);
+RcppExport SEXP _Wishart_lcvkernsmnorm(SEXP xSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(lcvkernsmnorm(x, b));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lcvkernWishart
 double lcvkernWishart(const arma::cube& x, const double& b);
 RcppExport SEXP _Wishart_lcvkernWishart(SEXP xSEXP, SEXP bSEXP) {
@@ -280,30 +333,59 @@ BEGIN_RCPP
 END_RCPP
 }
 // kdensWishart
-Rcpp::NumericVector kdensWishart(const arma::cube& x, const arma::cube& pts, const double& b, bool log);
-RcppExport SEXP _Wishart_kdensWishart(SEXP xSEXP, SEXP ptsSEXP, SEXP bSEXP, SEXP logSEXP) {
+Rcpp::NumericVector kdensWishart(const arma::cube& x, const arma::cube& xs, const double& b, bool log);
+RcppExport SEXP _Wishart_kdensWishart(SEXP xSEXP, SEXP xsSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type pts(ptsSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type xs(xsSEXP);
     Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(kdensWishart(x, pts, b, log));
+    rcpp_result_gen = Rcpp::wrap(kdensWishart(x, xs, b, log));
     return rcpp_result_gen;
 END_RCPP
 }
 // kdenssmlnorm
-Rcpp::NumericVector kdenssmlnorm(const arma::cube& x, const arma::cube& pts, double b, bool log);
-RcppExport SEXP _Wishart_kdenssmlnorm(SEXP xSEXP, SEXP ptsSEXP, SEXP bSEXP, SEXP logSEXP) {
+Rcpp::NumericVector kdenssmlnorm(const arma::cube& x, const arma::cube& xs, double b, bool log);
+RcppExport SEXP _Wishart_kdenssmlnorm(SEXP xSEXP, SEXP xsSEXP, SEXP bSEXP, SEXP logSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::cube& >::type pts(ptsSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type xs(xsSEXP);
     Rcpp::traits::input_parameter< double >::type b(bSEXP);
     Rcpp::traits::input_parameter< bool >::type log(logSEXP);
-    rcpp_result_gen = Rcpp::wrap(kdenssmlnorm(x, pts, b, log));
+    rcpp_result_gen = Rcpp::wrap(kdenssmlnorm(x, xs, b, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// kdenssmnorm
+Rcpp::NumericVector kdenssmnorm(const arma::cube& x, const arma::cube& xs, double b, bool log);
+RcppExport SEXP _Wishart_kdenssmnorm(SEXP xSEXP, SEXP xsSEXP, SEXP bSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(kdenssmnorm(x, xs, b, log));
+    return rcpp_result_gen;
+END_RCPP
+}
+// kdens_symmat
+Rcpp::NumericVector kdens_symmat(const arma::cube& x, const arma::cube& xs, std::string kernel, double b, bool log);
+RcppExport SEXP _Wishart_kdens_symmat(SEXP xSEXP, SEXP xsSEXP, SEXP kernelSEXP, SEXP bSEXP, SEXP logSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< bool >::type log(logSEXP);
+    rcpp_result_gen = Rcpp::wrap(kdens_symmat(x, xs, kernel, b, log));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -346,6 +428,47 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fdens
+Rcpp::NumericVector fdens(const arma::cube& x, const int& model);
+RcppExport SEXP _Wishart_fdens(SEXP xSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const int& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(fdens(x, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rdens
+arma::cube rdens(int n, const int& model);
+RcppExport SEXP _Wishart_rdens(SEXP nSEXP, SEXP modelSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const int& >::type model(modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(rdens(n, model));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ise_montecarlo
+Rcpp::NumericVector ise_montecarlo(const arma::cube& x, const arma::cube& xs, double b, std::string kernel, const int& model, int B, double delta);
+RcppExport SEXP _Wishart_ise_montecarlo(SEXP xSEXP, SEXP xsSEXP, SEXP bSEXP, SEXP kernelSEXP, SEXP modelSEXP, SEXP BSEXP, SEXP deltaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< std::string >::type kernel(kernelSEXP);
+    Rcpp::traits::input_parameter< const int& >::type model(modelSEXP);
+    Rcpp::traits::input_parameter< int >::type B(BSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(ise_montecarlo(x, xs, b, kernel, model, B, delta));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_Wishart_symmetrize", (DL_FUNC) &_Wishart_symmetrize, 1},
@@ -355,25 +478,34 @@ static const R_CallMethodDef CallEntries[] = {
     {"_Wishart_rotation2d", (DL_FUNC) &_Wishart_rotation2d, 1},
     {"_Wishart_rotation3d", (DL_FUNC) &_Wishart_rotation3d, 1},
     {"_Wishart_rotation_scaling", (DL_FUNC) &_Wishart_rotation_scaling, 2},
+    {"_Wishart_mgamma", (DL_FUNC) &_Wishart_mgamma, 3},
+    {"_Wishart_lmgamma", (DL_FUNC) &_Wishart_lmgamma, 2},
     {"_Wishart_dWishart", (DL_FUNC) &_Wishart_dWishart, 4},
+    {"_Wishart_dinvWishart", (DL_FUNC) &_Wishart_dinvWishart, 4},
     {"_Wishart_dWishart_mat", (DL_FUNC) &_Wishart_dWishart_mat, 4},
     {"_Wishart_rWishart", (DL_FUNC) &_Wishart_rWishart, 3},
+    {"_Wishart_rinvWishart", (DL_FUNC) &_Wishart_rinvWishart, 3},
     {"_Wishart_dsmnorm", (DL_FUNC) &_Wishart_dsmnorm, 4},
     {"_Wishart_dsmnorm_mat", (DL_FUNC) &_Wishart_dsmnorm_mat, 4},
     {"_Wishart_dsmlnorm", (DL_FUNC) &_Wishart_dsmlnorm, 4},
-    {"_Wishart_mgamma", (DL_FUNC) &_Wishart_mgamma, 3},
-    {"_Wishart_lmgamma", (DL_FUNC) &_Wishart_lmgamma, 2},
     {"_Wishart_dmbeta2", (DL_FUNC) &_Wishart_dmbeta2, 4},
+    {"_Wishart_rmbeta2", (DL_FUNC) &_Wishart_rmbeta2, 4},
     {"_Wishart_solvericcati", (DL_FUNC) &_Wishart_solvericcati, 4},
     {"_Wishart_dsmlnorm_mat", (DL_FUNC) &_Wishart_dsmlnorm_mat, 6},
     {"_Wishart_lcvkernsmlnorm", (DL_FUNC) &_Wishart_lcvkernsmlnorm, 2},
+    {"_Wishart_lcvkernsmnorm", (DL_FUNC) &_Wishart_lcvkernsmnorm, 2},
     {"_Wishart_lcvkernWishart", (DL_FUNC) &_Wishart_lcvkernWishart, 2},
     {"_Wishart_lcvsymmat", (DL_FUNC) &_Wishart_lcvsymmat, 3},
     {"_Wishart_kdensWishart", (DL_FUNC) &_Wishart_kdensWishart, 4},
     {"_Wishart_kdenssmlnorm", (DL_FUNC) &_Wishart_kdenssmlnorm, 4},
+    {"_Wishart_kdenssmnorm", (DL_FUNC) &_Wishart_kdenssmnorm, 4},
+    {"_Wishart_kdens_symmat", (DL_FUNC) &_Wishart_kdens_symmat, 5},
     {"_Wishart_lscvkernwishart", (DL_FUNC) &_Wishart_lscvkernwishart, 3},
     {"_Wishart_lscvkernsmlnorm", (DL_FUNC) &_Wishart_lscvkernsmlnorm, 3},
     {"_Wishart_rmnorm", (DL_FUNC) &_Wishart_rmnorm, 3},
+    {"_Wishart_fdens", (DL_FUNC) &_Wishart_fdens, 2},
+    {"_Wishart_rdens", (DL_FUNC) &_Wishart_rdens, 2},
+    {"_Wishart_ise_montecarlo", (DL_FUNC) &_Wishart_ise_montecarlo, 7},
     {NULL, NULL, 0}
 };
 

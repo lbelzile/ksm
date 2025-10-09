@@ -77,3 +77,57 @@ rWAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
     dim = c(d, d, n)
   )
 }
+
+
+#' Bandwidth optimization for symmetric matrix kernels
+#'
+#' Given a sample of positive definite matrices,
+#' perform numerical maximization of the \code{h}-block least square (\code{lscv}) or leave-one-out likelihood (\code{lcv}) cross-validation criteria using a root search.
+#'
+#' @param x sample of symmetric matrix observations from which to build the kernel density kernel
+#' @param bandwidth double for the bandwidth of the kernel
+#' @param kernel string, one of \code{Wishart}, \code{smlnorm} (log-Gaussian) or \code{smnorm} (Gaussian).
+#' @param tol double, tolerance of optimization (root search)
+#' @param h lag step for consideration of observations, for the case \code{criterion=lscv}
+#' @return double, the optimal bandwidth up to \code{tol}
+bandwidth_optim <- function(
+  data,
+  criterion = c("lscv", "lcv"),
+  kernel = c("Wishart", "smlnorm", "smnorm"),
+  tol = 1e-4,
+  h = 1L
+) {
+  criterion <- match.arg(criterion)
+  kernel <- match.arg(kernel)
+  if (criterion == "lscv" & kernel == "smnorm") {
+    stop(
+      "Least square cross validation not currently implemented for matrix normal kernel estimator."
+    )
+  }
+  if (criterion == "lscv") {
+    if (kernel == "Wishart") {
+      optfun <- function(band) {
+        fn <- lscv_kern_Wishart(x = data, b = band, h = h)
+        -exp(fn[1]) + exp(fn[2])
+      }
+    } else if (kernel == "smlnorm") {
+      optfun <- function(band) {
+        fn <- lscv_kern_smlnorm(x = data, b = band, h = h)
+        -exp(fn[1]) + exp(fn[2])
+      }
+    }
+  } else {
+    # LCV
+    optfun <- function(band) {
+      c(lcv_kdens_symmat(x = data, b = band, kernel = kernel)$lcv)
+    }
+  }
+
+  optimize(
+    f = optfun,
+    lower = 1e-4,
+    upper = 10,
+    maximum = TRUE,
+    tol = tol
+  )$maximum
+}
