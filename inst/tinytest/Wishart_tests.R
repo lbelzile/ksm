@@ -4,11 +4,11 @@ library(tinytest)
 source(
   "~/Documents/Dropbox/Publications/Ongoing/BGOR_2024_Wishart_asym_kernels/Code/functions.R"
 )
-library(Wishart)
+library(ksm)
 
 # Check dimension of output returned by rWishart
 d <- 10L
-S <- Wishart::symmetrize(diag(d) + matrix(0.5, d, d))
+S <- ksm::symmetrize(diag(d) + matrix(0.5, d, d))
 df <- d + 1
 b <- 2
 n <- 100L
@@ -81,12 +81,12 @@ expect_equal(
 
 xg <- rexp(n = 10, rate = 0.1)
 expect_equal(
-  c(CholWishart::lmvgamma(xg, p = 5)),
+  c(Cholksm::lmvgamma(xg, p = 5)),
   c(mgamma(xg, p = 5, log = TRUE))
 )
 expect_equal(
-  Wishart:::lmgamma(3.2, 4),
-  c(CholWishart::lmvgamma(3.2, 4))
+  ksm:::lmgamma(3.2, 4),
+  c(Cholksm::lmvgamma(3.2, 4))
 )
 
 
@@ -203,7 +203,7 @@ microbenchmark::microbenchmark(
 integrand <- function(vars, shape) {
   # Construct SPD matrix X from the parameters theta, lambda1, lambda2
   X <- array(
-    Wishart::rotation_scaling(vars[1], c(vars[2], vars[3])),
+    ksm::rotation_scaling(vars[1], c(vars[2], vars[3])),
     dim = c(2, 2, 1)
   )
   # Compute the density using the dmatrixbeta_typeII function

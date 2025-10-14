@@ -5,7 +5,7 @@
 \title{Bandwidth optimization for symmetric matrix kernels}
 \usage{
 bandwidth_optim(
-  data,
+  x,
   criterion = c("lscv", "lcv"),
   kernel = c("Wishart", "smlnorm", "smnorm"),
   tol = 1e-04,
@@ -13,15 +13,15 @@ bandwidth_optim(
 )
 }
 \arguments{
+\item{x}{sample of symmetric matrix observations from which to build the kernel density kernel}
+
+\item{criterion}{optimization criterion, one of \code{lscv} for least square cross-validation at lag \code{h} or \code{lcv} for leave-one-out cross-validation.}
+
 \item{kernel}{string, one of \code{Wishart}, \code{smlnorm} (log-Gaussian) or \code{smnorm} (Gaussian).}
 
 \item{tol}{double, tolerance of optimization (root search)}
 
 \item{h}{lag step for consideration of observations, for the case \code{criterion=lscv}}
-
-\item{x}{sample of symmetric matrix observations from which to build the kernel density kernel}
-
-\item{bandwidth}{double for the bandwidth of the kernel}
 }
 \value{
 double, the optimal bandwidth up to \code{tol}

@@ -2,14 +2,12 @@
 % Please edit documentation in R/RcppExports.R
 \name{simu_ise_montecarlo}
 \alias{simu_ise_montecarlo}
-\title{Target densities for simulation study}
+\title{Integrated squared error via Monte Carlo}
 \usage{
-simu_ise_montecarlo(x, xs, b, kernel, model, B = 10000L, delta = 0.001)
+simu_ise_montecarlo(x, b, kernel, model, B = 10000L, delta = 0.001)
 }
 \arguments{
-\item{x}{a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices at which to evaluate the kernel density}
-
-\item{xs}{a cube of dimension \code{d} by \code{d} by \code{m} of points used to construct the kernel density estimators}
+\item{x}{a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices which define the kernel matrix estimator}
 
 \item{b}{positive double, bandwidth parameter}
 

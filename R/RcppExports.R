@@ -9,7 +9,7 @@
 #' @return symmetrized version of \code{A}
 #' @export
 symmetrize <- function(A) {
-    .Call(`_Wishart_symmetrize`, A)
+    .Call(`_ksm_symmetrize`, A)
 }
 
 #' Log of sum with precision
@@ -18,7 +18,7 @@ symmetrize <- function(A) {
 #' @keywords internal
 #' @export
 sumlog <- function(x) {
-    .Call(`_Wishart_sumlog`, x)
+    .Call(`_ksm_sumlog`, x)
 }
 
 #' Log of mean with precision
@@ -27,7 +27,7 @@ sumlog <- function(x) {
 #' @param x vector of log components to add
 #' @return double with the log mean of elements
 meanlog <- function(x) {
-    .Call(`_Wishart_meanlog`, x)
+    .Call(`_ksm_meanlog`, x)
 }
 
 #' Signed sum with precision
@@ -41,7 +41,7 @@ meanlog <- function(x) {
 #' @return log sum of elements
 #' @export
 sumsignedlog <- function(x, sgn) {
-    .Call(`_Wishart_sumsignedlog`, x, sgn)
+    .Call(`_ksm_sumsignedlog`, x, sgn)
 }
 
 #' Rotation matrix for 2 dimensional problems
@@ -51,7 +51,7 @@ sumsignedlog <- function(x, sgn) {
 #' @export
 #' @keywords internal
 rotation2d <- function(par) {
-    .Call(`_Wishart_rotation2d`, par)
+    .Call(`_ksm_rotation2d`, par)
 }
 
 #' Rotation matrix for 3 dimensional problems
@@ -61,7 +61,7 @@ rotation2d <- function(par) {
 #' @export
 #' @keywords internal
 rotation3d <- function(par) {
-    .Call(`_Wishart_rotation3d`, par)
+    .Call(`_ksm_rotation3d`, par)
 }
 
 #' Rotation matrix with scaling for Monte Carlo integration
@@ -73,7 +73,7 @@ rotation3d <- function(par) {
 #' @keywords internal
 #' @export
 rotation_scaling <- function(ang, scale) {
-    .Call(`_Wishart_rotation_scaling`, ang, scale)
+    .Call(`_ksm_rotation_scaling`, ang, scale)
 }
 
 #' Multivariate gamma function
@@ -85,11 +85,11 @@ rotation_scaling <- function(ang, scale) {
 #' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
 #' @export
 mgamma <- function(x, p, log = FALSE) {
-    .Call(`_Wishart_mgamma`, x, p, log)
+    .Call(`_ksm_mgamma`, x, p, log)
 }
 
 lmgamma <- function(x, p) {
-    .Call(`_Wishart_lmgamma`, x, p)
+    .Call(`_ksm_lmgamma`, x, p)
 }
 
 #' Density of Wishart random matrix
@@ -101,7 +101,7 @@ lmgamma <- function(x, p) {
 #' @return a vector of length \code{n} containing the log-density of the Wishart.
 #' @export
 dWishart <- function(x, df, S, log = FALSE) {
-    .Call(`_Wishart_dWishart`, x, df, S, log)
+    .Call(`_ksm_dWishart`, x, df, S, log)
 }
 
 #' Density of inverse Wishart random matrix
@@ -113,11 +113,11 @@ dWishart <- function(x, df, S, log = FALSE) {
 #' @return a vector of length \code{n} containing the log-density of the inverse Wishart.
 #' @export
 dinvWishart <- function(x, df, S, log = FALSE) {
-    .Call(`_Wishart_dinvWishart`, x, df, S, log)
+    .Call(`_ksm_dinvWishart`, x, df, S, log)
 }
 
 dWishart_mat <- function(x, df, S, log = FALSE) {
-    .Call(`_Wishart_dWishart_mat`, x, df, S, log)
+    .Call(`_ksm_dWishart_mat`, x, df, S, log)
 }
 
 #' Random matrix generation from Wishart distribution
@@ -128,7 +128,7 @@ dWishart_mat <- function(x, df, S, log = FALSE) {
 #' @return an array of dimension \code{d} by \code{d} by \code{n} containing the samples
 #' @export
 rWishart <- function(n, df, S) {
-    .Call(`_Wishart_rWishart`, n, df, S)
+    .Call(`_ksm_rWishart`, n, df, S)
 }
 
 #' Random matrix generation from the inverse Wishart distribution
@@ -139,7 +139,7 @@ rWishart <- function(n, df, S) {
 #' @return an array of dimension \code{d} by \code{d} by \code{n} containing the samples
 #' @export
 rinvWishart <- function(n, df, S) {
-    .Call(`_Wishart_rinvWishart`, n, df, S)
+    .Call(`_ksm_rinvWishart`, n, df, S)
 }
 
 #' Symmetric matrix-variate normal density
@@ -151,11 +151,11 @@ rinvWishart <- function(n, df, S) {
 #' @return a vector of length \code{n}
 #' @export
 dsmnorm <- function(x, b, M, log = TRUE) {
-    .Call(`_Wishart_dsmnorm`, x, b, M, log)
+    .Call(`_ksm_dsmnorm`, x, b, M, log)
 }
 
 dsmnorm_mat <- function(x, b, M, log = TRUE) {
-    .Call(`_Wishart_dsmnorm_mat`, x, b, M, log)
+    .Call(`_ksm_dsmnorm_mat`, x, b, M, log)
 }
 
 #' Symmetric matrix-variate lognormal density
@@ -168,7 +168,7 @@ dsmnorm_mat <- function(x, b, M, log = TRUE) {
 #' @return a vector of length \code{n}
 #' @export
 dsmlnorm <- function(x, b, M, log = TRUE) {
-    .Call(`_Wishart_dsmlnorm`, x, b, M, log)
+    .Call(`_ksm_dsmlnorm`, x, b, M, log)
 }
 
 #' Matrix beta type II density function
@@ -182,7 +182,7 @@ dsmlnorm <- function(x, b, M, log = TRUE) {
 #' @return a vector of length \code{n}
 #' @export
 dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
-    .Call(`_Wishart_dmbeta2`, x, shape1, shape2, log)
+    .Call(`_ksm_dmbeta2`, x, shape1, shape2, log)
 }
 
 #' Random matrix generation from matrix beta type II distribution
@@ -195,7 +195,7 @@ dmbeta2 <- function(x, shape1, shape2, log = TRUE) {
 #' @return a cube of dimension \code{d} by \code{d} by \code{n}
 #' @export
 rmbeta2 <- function(n, d, shape1, shape2) {
-    .Call(`_Wishart_rmbeta2`, n, d, shape1, shape2)
+    .Call(`_ksm_rmbeta2`, n, d, shape1, shape2)
 }
 
 #' Solver for Riccati equation
@@ -216,11 +216,11 @@ rmbeta2 <- function(n, d, shape1, shape2) {
 #' \item \code{convergence} bool indicating convergence (\code{TRUE}) if \code{niter < maxiter}
 #' }
 Riccati <- function(M, S, tol = 1e-8, maxiter = 1e4L) {
-    .Call(`_Wishart_solvericcati`, M, S, tol, maxiter)
+    .Call(`_ksm_solvericcati`, M, S, tol, maxiter)
 }
 
 dsmlnorm_mat <- function(x, matlog_x, b, M, matlog_M, log = TRUE) {
-    .Call(`_Wishart_dsmlnorm_mat`, x, matlog_x, b, M, matlog_M, log)
+    .Call(`_ksm_dsmlnorm_mat`, x, matlog_x, b, M, matlog_M, log)
 }
 
 #' Likelihood cross validation criterion for symmetric matrix lognormal kernel
@@ -232,7 +232,7 @@ dsmlnorm_mat <- function(x, matlog_x, b, M, matlog_M, log = TRUE) {
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
 lcv_kern_smlnorm <- function(x, b) {
-    .Call(`_Wishart_lcvkernsmlnorm`, x, b)
+    .Call(`_ksm_lcvkernsmlnorm`, x, b)
 }
 
 #' Likelihood cross validation criterion for symmetric matrix normal kernel
@@ -244,7 +244,7 @@ lcv_kern_smlnorm <- function(x, b) {
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
 lcv_kern_smnorm <- function(x, b) {
-    .Call(`_Wishart_lcvkernsmnorm`, x, b)
+    .Call(`_ksm_lcvkernsmnorm`, x, b)
 }
 
 #' Likelihood cross validation criterion for Wishart kernel
@@ -257,7 +257,7 @@ lcv_kern_smnorm <- function(x, b) {
 #' @export
 #' @return the value of the log objective function
 lcv_kern_Wishart <- function(x, b) {
-    .Call(`_Wishart_lcvkernWishart`, x, b)
+    .Call(`_ksm_lcvkernWishart`, x, b)
 }
 
 #' Likelihood cross-validation for symmetric positive definite matrix kernels
@@ -279,7 +279,7 @@ lcv_kern_Wishart <- function(x, b) {
 #' \item \code{kernel} string indicating the choice of kernel function
 #'}
 lcv_kdens_symmat <- function(x, b, kernel = "Wishart") {
-    .Call(`_Wishart_lcvsymmat`, x, b, kernel)
+    .Call(`_ksm_lcvsymmat`, x, b, kernel)
 }
 
 #' Wishart kernel density
@@ -294,7 +294,7 @@ lcv_kdens_symmat <- function(x, b, kernel = "Wishart") {
 #' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
 #' @export
 kdens_Wishart <- function(x, xs, b, log = TRUE) {
-    .Call(`_Wishart_kdensWishart`, x, xs, b, log)
+    .Call(`_ksm_kdensWishart`, x, xs, b, log)
 }
 
 #' Symmetric matrix log-normal kernel density
@@ -309,7 +309,7 @@ kdens_Wishart <- function(x, xs, b, log = TRUE) {
 #' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
 #' @export
 kdens_smlnorm <- function(x, xs, b, log = TRUE) {
-    .Call(`_Wishart_kdenssmlnorm`, x, xs, b, log)
+    .Call(`_ksm_kdenssmlnorm`, x, xs, b, log)
 }
 
 #' Symmetric matrix normal kernel density
@@ -324,7 +324,7 @@ kdens_smlnorm <- function(x, xs, b, log = TRUE) {
 #' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
 #' @export
 kdens_smnorm <- function(x, xs, b, log = TRUE) {
-    .Call(`_Wishart_kdenssmnorm`, x, xs, b, log)
+    .Call(`_ksm_kdenssmnorm`, x, xs, b, log)
 }
 
 #' Kernel density estimators for symmetric matrices
@@ -340,7 +340,7 @@ kdens_smnorm <- function(x, xs, b, log = TRUE) {
 #' @return a vector of length \code{n} containing the (log) density of the sample \code{x}
 #' @export
 kdens_symmat <- function(x, xs, kernel = "Wishart", b = 1, log = TRUE) {
-    .Call(`_Wishart_kdens_symmat`, x, xs, kernel, b, log)
+    .Call(`_ksm_kdens_symmat`, x, xs, kernel, b, log)
 }
 
 #' Least square cross validation criterion for Wishart kernel
@@ -352,7 +352,7 @@ kdens_symmat <- function(x, xs, kernel = "Wishart", b = 1, log = TRUE) {
 #' @param h separation vector; only pairs that are \eqn{|i-j| \leq h} apart are considered
 #' @return a vector of length two containing the log of the summands
 lscv_kern_Wishart <- function(x, b, h = 1L) {
-    .Call(`_Wishart_lscvkernwishart`, x, b, h)
+    .Call(`_ksm_lscvkernwishart`, x, b, h)
 }
 
 #' Least square cross validation criterion for log symmetric matrix normal kernel
@@ -364,7 +364,7 @@ lscv_kern_Wishart <- function(x, b, h = 1L) {
 #' @param h separation vector; only pairs that are \eqn{|i-j| \leq h}
 #'  apart are considered
 lscv_kern_smlnorm <- function(x, b, h = 1L) {
-    .Call(`_Wishart_lscvkernsmlnorm`, x, b, h)
+    .Call(`_ksm_lscvkernsmlnorm`, x, b, h)
 }
 
 #' Random vector generation from the multivariate normal distribution
@@ -380,36 +380,37 @@ lscv_kern_smlnorm <- function(x, b, h = 1L) {
 #' @examples
 #' rmnorm(n = 10, mean = c(0, 2), vcov = diag(2))
 rmnorm <- function(n, mean, vcov) {
-    .Call(`_Wishart_rmnorm`, n, mean, vcov)
+    .Call(`_ksm_rmnorm`, n, mean, vcov)
 }
 
 #' Target densities for simulation study
 #' @param x cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
 #' @param model integer between 1 and 6 indicating the simulation scenario
+#' @param d dimension of the problem, an integer between 2 and 10
 #' @export
 #' @return a vector of length \code{n} containing the density
 #' @keywords internal
-simu_fdens2d <- function(x, model) {
-    .Call(`_Wishart_fdens`, x, model)
+simu_fdens <- function(x, model, d) {
+    .Call(`_ksm_fdens`, x, model, d)
 }
 
 #' Target densities for simulation study
 #' @param n sample size
 #' @param model integer between 1 and 6 indicating the simulation scenario
+#' @param d dimension of the matrix, an integer between 2 and 10
 #' @export
 #' @return a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
 #' @keywords internal
-simu_rdens2d <- function(n, model) {
-    .Call(`_Wishart_rdens`, n, model)
+simu_rdens <- function(n, model, d) {
+    .Call(`_ksm_rdens`, n, model, d)
 }
 
-#' Target densities for simulation study
+#' Integrated squared error via Monte Carlo
 #'
 #' Given a target density and a kernel estimator, evaluate the
 #' integrated squared error by Monte Carlo integration by simulating
 #' from uniform variates on the hypercube.
-#' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices at which to evaluate the kernel density
-#' @param xs a cube of dimension \code{d} by \code{d} by \code{m} of points used to construct the kernel density estimators
+#' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices which define the kernel matrix estimator
 #' @param b positive double, bandwidth parameter
 #' @param model integer between 1 and 6 indicating the simulation scenario
 #' @param B number of Monte Carlo replications, default to 10K
@@ -417,7 +418,22 @@ simu_rdens2d <- function(n, model) {
 #' @export
 #' @return a vector of length 2 containing the mean and the standard deviation of the estimator.
 #' @keywords internal
-simu_ise_montecarlo <- function(x, xs, b, kernel, model, B = 10000L, delta = 0.001) {
-    .Call(`_Wishart_ise_montecarlo`, x, xs, b, kernel, model, B, delta)
+simu_ise_montecarlo <- function(x, b, kernel, model, B = 10000L, delta = 0.001) {
+    .Call(`_ksm_ise_montecarlo`, x, b, kernel, model, B, delta)
+}
+
+#' Kullback-Leibler divergence via Monte Carlo
+#'
+#' Given a target density and a kernel estimator, evaluate the
+#' Kullback-Leibler divergence by Monte Carlo integration by simulating draws from the corresponding model.
+#' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices which define the kernel matrix estimator
+#' @param b positive double, bandwidth parameter
+#' @param model integer between 1 and 6 indicating the simulation scenario
+#' @param B number of Monte Carlo replications, default to 10K
+#' @export
+#' @return a vector of length 2 containing the mean and the standard deviation of the estimator.
+#' @keywords internal
+simu_kldiv <- function(x, b, kernel, model, B = 10000L, nrep = 10L) {
+    .Call(`_ksm_kldiv_montecarlo`, x, b, kernel, model, B, nrep)
 }
 

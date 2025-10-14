@@ -9,7 +9,7 @@
 #' @param K integer, degrees of freedom
 #' @param burnin number of iterations discarded
 #' @param order order of autoregressive process, only \code{1} is supported at current.
-#' @useDynLib Wishart, .registration=TRUE
+#' @useDynLib ksm, .registration=TRUE
 #' @return a list of length \code{n} containing matrices of size \code{K} by \code{d}
 #' @keywords internal
 #' @export
@@ -17,7 +17,14 @@
 #' M <- matrix(c(0.3, -0.3, -0.3, 0.3), nrow = 2)
 #' Sigma <- matrix(c(1, 0.5, 0.5, 1), nrow = 2)
 #' rVAR(n = 100, M = M, Sigma = Sigma, K = 10)
-rVAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
+rVAR <- function(
+  n,
+  M,
+  Sigma,
+  K = 1L,
+  order = 1L,
+  burnin = 25L
+) {
   d <- ncol(M)
   K <- as.integer(K)
   n <- as.integer(n)
@@ -83,15 +90,16 @@ rWAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
 #'
 #' Given a sample of positive definite matrices,
 #' perform numerical maximization of the \code{h}-block least square (\code{lscv}) or leave-one-out likelihood (\code{lcv}) cross-validation criteria using a root search.
-#'
+#' @importFrom stats optimize
 #' @param x sample of symmetric matrix observations from which to build the kernel density kernel
-#' @param bandwidth double for the bandwidth of the kernel
+#' @param criterion optimization criterion, one of \code{lscv} for least square cross-validation at lag \code{h} or \code{lcv} for leave-one-out cross-validation.
 #' @param kernel string, one of \code{Wishart}, \code{smlnorm} (log-Gaussian) or \code{smnorm} (Gaussian).
 #' @param tol double, tolerance of optimization (root search)
 #' @param h lag step for consideration of observations, for the case \code{criterion=lscv}
+#' @export
 #' @return double, the optimal bandwidth up to \code{tol}
 bandwidth_optim <- function(
-  data,
+  x,
   criterion = c("lscv", "lcv"),
   kernel = c("Wishart", "smlnorm", "smnorm"),
   tol = 1e-4,
@@ -107,19 +115,19 @@ bandwidth_optim <- function(
   if (criterion == "lscv") {
     if (kernel == "Wishart") {
       optfun <- function(band) {
-        fn <- lscv_kern_Wishart(x = data, b = band, h = h)
+        fn <- lscv_kern_Wishart(x = x, b = band, h = h)
         -exp(fn[1]) + exp(fn[2])
       }
     } else if (kernel == "smlnorm") {
       optfun <- function(band) {
-        fn <- lscv_kern_smlnorm(x = data, b = band, h = h)
+        fn <- lscv_kern_smlnorm(x = x, b = band, h = h)
         -exp(fn[1]) + exp(fn[2])
       }
     }
   } else {
     # LCV
     optfun <- function(band) {
-      c(lcv_kdens_symmat(x = data, b = band, kernel = kernel)$lcv)
+      c(lcv_kdens_symmat(x = x, b = band, kernel = kernel)$lcv)
     }
   }
 

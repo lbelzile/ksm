@@ -1293,36 +1293,51 @@ Rcpp::NumericMatrix rmnorm(
 //' Target densities for simulation study
 //' @param x cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
 //' @param model integer between 1 and 6 indicating the simulation scenario
+//' @param d dimension of the problem, an integer between 2 and 10
 //' @export
 //' @return a vector of length \code{n} containing the density
 //' @keywords internal
-// [[Rcpp::export(simu_fdens2d)]]
-Rcpp::NumericVector fdens(const arma::cube &x, const int &model){
+// [[Rcpp::export(simu_fdens)]]
+Rcpp::NumericVector fdens(const arma::cube &x, const int &model, const int &d){
+  if((d < 2) | (d > 10)){
+    Rcpp::stop("Invalid dimension for model.");
+  }
   arma::vec res(x.n_slices);
   if (model == 1) {
-    arma::mat S1(2,2,arma::fill::eye);
-    arma::mat S2(2,2,arma::fill::eye);
-    S1(0,1) = S1(1,0) = 0.1;
-    S2(0,1) = S2(1,0) = -0.9;
-    res = 0.5 * dWishart(x, 4, S1, false) + 0.5 * dWishart(x, 5, S2, false);
+    // arma::mat S1(2,2,arma::fill::eye);
+    // arma::mat S2(2,2,arma::fill::eye);
+    // S1(0,1) = S1(1,0) = 0.1;
+    // S2(0,1) = S2(1,0) = -0.9;
+    arma::mat S1(d,d,arma::fill::value(0.1));
+    arma::mat S2(d,d,arma::fill::value(-1.0/(d - 1.0) + 0.1));
+    for(int i = 0; i < d; i++){
+      S1(i,i) = S2(i,i) = 1;
+    }
+    res = 0.5 * dWishart(x, d + 2, S1, false) + 0.5 * dWishart(x, d + 3, S2, false);
   } else if(model == 2){
-    arma::mat S3(2,2,arma::fill::zeros);
-    arma::mat S4(2,2,arma::fill::eye);
-    S4(0,1) = S4(1,0) = -0.5;
-    S3(0,0) = S3(1,1) = 0.5;
-    res = 0.5 * dWishart(x, 5, S3, false) + 0.5 * dWishart(x, 6, S4, false);
+    arma::mat S3(d,d,arma::fill::zeros);
+    arma::mat S4(d,d,arma::fill::value(-0.5/(d - 1.0)));
+    for(int i = 0; i < d; i++){
+      S3(i,i) = 0.5;
+      S4(i,i) = 1;
+    }
+    res = 0.5 * dWishart(x, d + 3, S3, false) + 0.5 * dWishart(x, d + 4, S4, false);
   } else if(model == 3){
-    arma::mat S2(2,2,arma::fill::eye);
-    S2(0,1) = S2(1,0) = -0.9;
-    res = dinvWishart(x, 5, S2, false);
+    arma::mat S2(d, d, arma::fill::value(-1.0/(d - 1.0) + 0.1));
+    for(int i = 0; i < d; i++){
+      S2(i,i) = 1;
+    }
+    res = dinvWishart(x, d + 3.0, S2, false);
   } else if(model == 4){
-    arma::mat S4(2,2,arma::fill::eye);
-    S4(0,1) = S4(1,0) = -0.5;
-    res = dinvWishart(x, 6, S4, false);
+    arma::mat S4(d,d,arma::fill::value(-0.5/(d - 1.0)));
+    for(int i = 0; i < d; i++){
+      S4(i,i) = 1;
+    }
+    res = dinvWishart(x, d + 4.0, S4, false);
   } else if(model == 5){
-    res = dmbeta2(x, 2, 2, false);
+    res = dmbeta2(x, 0.5 * d + 1, 0.5 * d + 1, false);
   } else if(model == 6){
-    res = dmbeta2(x, 3, 3, false);
+    res = dmbeta2(x, 0.5 * d, 0.5 * d + 2.0, false);
   } else{
     Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
   }
@@ -1332,55 +1347,65 @@ Rcpp::NumericVector fdens(const arma::cube &x, const int &model){
 //' Target densities for simulation study
 //' @param n sample size
 //' @param model integer between 1 and 6 indicating the simulation scenario
+//' @param d dimension of the matrix, an integer between 2 and 10
 //' @export
 //' @return a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices
 //' @keywords internal
-// [[Rcpp::export(simu_rdens2d)]]
-arma::cube rdens(int n, const int &model){
+// [[Rcpp::export(simu_rdens)]]
+arma::cube rdens(int n, const int &model,  const int &d){
+  if((d < 2) | (d > 10)){
+    Rcpp::stop("Invalid dimension for model.");
+  }
   if (model == 1) {
-    arma::mat S1(2,2,arma::fill::eye);
-    arma::mat S2(2,2,arma::fill::eye);
-    S1(0,1) = S1(1,0) = 0.1;
-    S2(0,1) = S2(1,0) = -0.9;
+    arma::mat S1(d,d,arma::fill::value(0.1));
+    arma::mat S2(d,d,arma::fill::value(-1.0/(d - 1.0) + 0.1));
+    for(int i = 0; i < d; i++){
+      S1(i,i) = S2(i,i) = 1;
+    }
     int m = Rcpp::rbinom(1, n, 0.5)[0];
-    arma::cube x(2,2,n);
-    x.slices(0, m - 1) = rWishart(m, 4, S1);
-    x.slices(m, n - 1) = rWishart(n - m, 5, S2);
+    arma::cube x(d,d,n);
+    x.slices(0, m - 1) = rWishart(m, d + 2, S1);
+    x.slices(m, n - 1) = rWishart(n - m, d + 3, S2);
     return x.slices(arma::randperm(n));
   } else if(model == 2){
-    arma::mat S3(2,2,arma::fill::zeros);
-    arma::mat S4(2,2,arma::fill::eye);
-    S4(0,1) = S4(1,0) = -0.5;
-    S3(0,0) = S3(1,1) = 0.5;
+    arma::mat S3(d,d,arma::fill::zeros);
+    arma::mat S4(d,d,arma::fill::value(-0.5/(d - 1.0)));
+    for(int i = 0; i < d; i++){
+      S3(i,i) = 0.5;
+      S4(i,i) = 1;
+    }
     int m = Rcpp::rbinom(1, n, 0.5)[0];
-    arma::cube x(2,2,n);
-    x.slices(0, m - 1) = rWishart(m, 5, S3);
-    x.slices(m, n - 1) = rWishart(n - m, 6, S4);
+    arma::cube x(d,d,n);
+    x.slices(0, m - 1) = rWishart(m, d + 3, S3);
+    x.slices(m, n - 1) = rWishart(n - m, d + 4, S4);
     return x.slices(arma::randperm(n));
   } else if(model == 3){
-    arma::mat S2(2,2,arma::fill::eye);
-    S2(0,1) = S2(1,0) = -0.9;
-    return rinvWishart(n, 5, S2);
+    arma::mat S2(d, d, arma::fill::value(-1.0/(d - 1.0) + 0.1));
+    for(int i = 0; i < d; i++){
+      S2(i,i) = 1;
+    }
+    return rinvWishart(n, d + 3, S2);
   } else if(model == 4){
-    arma::mat S4(2,2,arma::fill::eye);
-    S4(0,1) = S4(1,0) = -0.5;
-    return rinvWishart(n, 6, S4);
+    arma::mat S4(d,d,arma::fill::value(-0.5/(d - 1.0)));
+    for(int i = 0; i < d; i++){
+      S4(i,i) = 1;
+    }
+    return rinvWishart(n, d + 4, S4);
   } else if(model == 5){
-    return rmbeta2(n, 2, 2, 2);
+    return rmbeta2(n, d, 0.5 * d + 1, 0.5 * d + 1);
   } else if(model == 6){
-    return rmbeta2(n, 2, 3, 3);
+    return rmbeta2(n, d, 0.5*d, 0.5*d + 2);
   } else{
     Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
   }
 }
 
-//' Target densities for simulation study
+//' Integrated squared error via Monte Carlo
 //'
 //' Given a target density and a kernel estimator, evaluate the
 //' integrated squared error by Monte Carlo integration by simulating
 //' from uniform variates on the hypercube.
-//' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices at which to evaluate the kernel density
-//' @param xs a cube of dimension \code{d} by \code{d} by \code{m} of points used to construct the kernel density estimators
+//' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices which define the kernel matrix estimator
 //' @param b positive double, bandwidth parameter
 //' @param model integer between 1 and 6 indicating the simulation scenario
 //' @param B number of Monte Carlo replications, default to 10K
@@ -1391,7 +1416,6 @@ arma::cube rdens(int n, const int &model){
 // [[Rcpp::export(simu_ise_montecarlo)]]
 Rcpp::NumericVector ise_montecarlo(
     const arma::cube &x,
-    const arma::cube &xs,
     double b,
     std::string kernel,
     const int &model,
@@ -1418,7 +1442,7 @@ Rcpp::NumericVector ise_montecarlo(
         mcsamp.slice(i) = rotation_scaling(ang, scale);
         jac[i] = std::abs(scale(0) - scale(1));
       }
-      res_v[j] =  Rcpp::mean(jac * Rcpp::pow(kdens_symmat(mcsamp, x, kernel, b, false) - fdens(mcsamp, model), 2.0)) * 0.25 / cst;
+      res_v[j] =  Rcpp::mean(jac * Rcpp::pow(kdens_symmat(mcsamp, x, kernel, b, false) - fdens(mcsamp, model, d), 2.0)) * 0.25 / cst;
     }
     res[0] = Rcpp::mean(res_v);
     res[1] = Rcpp::sd(res_v) / std::sqrt(10.0);
@@ -1426,4 +1450,40 @@ Rcpp::NumericVector ise_montecarlo(
   } else{
    Rcpp::stop("3D version not implemented");
   }
+}
+
+
+
+//' Kullback-Leibler divergence via Monte Carlo
+//'
+//' Given a target density and a kernel estimator, evaluate the
+//' Kullback-Leibler divergence by Monte Carlo integration by simulating draws from the corresponding model.
+//' @param x a cube of dimension \code{d} by \code{d} by \code{n} containing the sample matrices which define the kernel matrix estimator
+//' @param b positive double, bandwidth parameter
+//' @param model integer between 1 and 6 indicating the simulation scenario
+//' @param B number of Monte Carlo replications, default to 10K
+//' @export
+//' @return a vector of length 2 containing the mean and the standard deviation of the estimator.
+//' @keywords internal
+// [[Rcpp::export(simu_kldiv)]]
+Rcpp::NumericVector kldiv_montecarlo(
+    const arma::cube &x,
+    double b,
+    std::string kernel,
+    const int &model,
+    int B = 10000,
+    int nrep = 10){
+  arma::uword d = x.n_cols;
+  Rcpp::NumericVector res(2);
+  int m = std::floor(B / nrep);
+  Rcpp::NumericVector res_v(nrep);
+  arma::cube mcsamp(d, d, m);
+  for(int j = 0; j < nrep; j++){
+    mcsamp = rdens(m, model, d);
+    res_v[j] = Rcpp::mean(Rcpp::log(fdens(mcsamp, model,d)) - kdens_symmat(mcsamp, x, kernel, b, true));
+  }
+  // std::cout << res_v << std::endl;
+res[0] = Rcpp::mean(res_v);
+res[1] = Rcpp::sd(res_v) / std::sqrt(nrep);
+return res;
 }
