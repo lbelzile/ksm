@@ -139,3 +139,96 @@ bandwidth_optim <- function(
     tol = tol
   )$maximum
 }
+
+
+#' Integration with respect to symmetric positive definite matrices
+#'
+#' Given a function \code{f} defined over the space of symmetric positive definite matrices, compute an integral via numerical integration using the routine \link[cubature]{cubintegrate}.
+#' @param f function to evaluate that takes as arguments array of size \code{dim} by \code{dim} by 1.
+#' @param dim dimension of integral, only two or three dimensions are supported
+#' @param tol double for tolerance of numerical integral
+#' @param lb lower bound for integration range of eigenvalues
+#' @param ub upper bound for integration range of eigenvalues
+#' @param neval maximum number of evaluations
+#' @param method string indicating the method from \code{cubature}
+#' @param ... additional arguments for the function \code{f}
+#' @return list returned by the integration routine. See the documentation of \link[cubature]{cubintegrate} for more details.
+#' @export
+#' @examples
+#' \dontrun{
+#' integrate_spd(
+#'   dim = 2L,
+#'   neval = 1e4L,
+#'   f = function(x, S){dWishart(x, df = 10, S = S, log = FALSE)},
+#'   S = diag(2))
+#' }
+integrate_spd <- function(
+  f,
+  dim,
+  tol = 1e-3,
+  lb = 1e-8,
+  ub = Inf,
+  neval = 1e6L,
+  method = c("suave", "hcubature"),
+  ...
+) {
+  if (!requireNamespace("cubature", quietly = TRUE)) {
+    stop(
+      "Package \"cubature\" needed for this function to work. Please install it.",
+      call. = FALSE
+    )
+  }
+  method <- match.arg(
+    method[1],
+    choices = c("hcubature", "pcubature", "cuhre", "divonne", "suave", "vegas")
+  )
+  stopifnot(
+    is.function(f),
+    dim %in% c(2L, 3L),
+    length(lb) == 1L,
+    length(ub) == 1L,
+    lb >= 0,
+    ub > lb,
+    tol > 0
+  )
+  integrand <- function(vars, ...) {
+    # Construct SPD matrix S
+    if (length(vars) == 3L) {
+      S <- ksm::rotation_scaling(vars[1], vars[2:3])
+      jacobian_value <- abs(vars[2] - vars[3]) / 4
+    } else {
+      S <- ksm::rotation_scaling(vars[1:3], vars[4:6])
+      jacobian_value <- abs(vars[4] - vars[5]) *
+        abs(vars[4] - vars[6]) *
+        abs(vars[5] - vars[6]) *
+        sin(vars[2]) /
+        24
+    }
+    S <- array(S, dim = c(nrow(S), ncol(S), 1))
+
+    # Compute the squared difference between the kernel and the target density
+
+    # Return the product of diff_squared and the Jacobian factor
+    return(f(S, ...) * jacobian_value)
+  }
+  if (dim == 2L) {
+    # Define the limits of integration
+    lower_limit <- c(0, rep(lb, length.out = dim))
+    upper_limit <- c(2 * pi, rep(ub, length.out = dim))
+  } else if (dim == 3L) {
+    lower_limit <- c(rep(0, 3), rep(lb, length.out = dim))
+    upper_limit <- c(2 * pi, pi, 2 * pi, rep(ub, length.out = dim))
+  }
+
+  result <- cubature::cubintegrate(
+    f = integrand,
+    lower = lower_limit,
+    upper = upper_limit,
+    method = method,
+    relTol = 1e-3,
+    maxEval = neval,
+    ...
+  )
+
+  return(result)
+}
