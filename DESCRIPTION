@@ -8,8 +8,6 @@ BugReports:
       https://github.com/lbelzile/ksm/issues
 Imports:
     Rcpp (>= 1.0.12)   
-Depends:
-    R (>= 2.10)
 Suggests:
    cubature,
    tinytest
@@ -19,3 +17,6 @@ LinkingTo:
 Encoding: UTF-8
 License: MIT + file LICENSE
 RoxygenNote: 7.3.3
+LazyData: true
+Depends: 
+    R (>= 2.10)
