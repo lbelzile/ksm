@@ -11,10 +11,12 @@ lscv_kern_smlnorm(x, b, h = 1L)
 
 \item{b}{[numeric] scale parameter, strictly positive}
 
-\item{h}{separation vector; only pairs that are \eqn{|i-j| \leq h}
-apart are considered}
+\item{h}{[int] integer indicating the separation lag}
+}
+\value{
+a vector of length two containing the log of the summands
 }
 \description{
 Finite sample h-block leave-one-out approximation to the least
-square criterion, omitting constant term.
+square criterion, omitting constant term. Only pairs that are \eqn{|i-j| \leq h} apart are considered.
 }

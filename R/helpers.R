@@ -155,13 +155,12 @@ bandwidth_optim <- function(
 #' @return list returned by the integration routine. See the documentation of \link[cubature]{cubintegrate} for more details.
 #' @export
 #' @examples
-#' \dontrun{
 #' integrate_spd(
 #'   dim = 2L,
 #'   neval = 1e4L,
-#'   f = function(x, S){dWishart(x, df = 10, S = S, log = FALSE)},
+#'   f = function(x, S){
+#'    dWishart(x, df = 10, S = S, log = FALSE)},
 #'   S = diag(2))
-#' }
 integrate_spd <- function(
   f,
   dim,

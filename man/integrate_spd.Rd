@@ -39,11 +39,10 @@ list returned by the integration routine. See the documentation of \link[cubatur
 Given a function \code{f} defined over the space of symmetric positive definite matrices, compute an integral via numerical integration using the routine \link[cubature]{cubintegrate}.
 }
 \examples{
-\dontrun{
 integrate_spd(
   dim = 2L,
   neval = 1e4L,
-  f = function(x, S){dWishart(x, df = 10, S = S, log = FALSE)},
+  f = function(x, S){
+   dWishart(x, df = 10, S = S, log = FALSE)},
   S = diag(2))
-}
 }

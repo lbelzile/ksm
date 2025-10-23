@@ -150,14 +150,16 @@ arma::mat rotation_scaling(arma::vec ang, arma::vec scale){
 
 //' Multivariate gamma function
 //'
+//' Given a vector of points \code{x} and an order \code{p}, compute the multivariate gamma function. The function is defined as
+//' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
+//'
 //' @param x [vector] of points at which to evaluate the function
 //' @param p [int] dimension of the multivariate gamma function, strictly positive.
 //' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
-//' The function is defined as
-//' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
 //' @export
+//' @return a matrix with one column of the same length as \code{x}
 // [[Rcpp::export]]
- arma::vec mgamma(const arma::vec &x, int p, bool log = false){
+arma::vec mgamma(const arma::vec &x, int p, bool log = false){
    if(p < 1){
      Rcpp::stop("Invalid argument\"p\": must be a positive integer.");
    }
@@ -237,7 +239,7 @@ arma::vec dWishart(const arma::cube &x,double df, const arma::mat &S, bool log =
 //' @return a vector of length \code{n} containing the log-density of the inverse Wishart.
 //' @export
 // [[Rcpp::export('dinvWishart')]]
- arma::vec dinvWishart(const arma::cube &x, double df, const arma::mat &S, bool log = false){
+arma::vec dinvWishart(const arma::cube &x, double df, const arma::mat &S, bool log = false){
    arma::uword n = x.n_slices;
    arma::uword d = x.n_rows;
    if((x.n_cols != d) | (d != S.n_rows) | (d != S.n_cols)){
@@ -1187,11 +1189,12 @@ arma::vec lscvkernwishart(
 //' Least square cross validation criterion for log symmetric matrix normal kernel
 //'
 //' Finite sample h-block leave-one-out approximation to the least
-//' square criterion, omitting constant term.
+//' square criterion, omitting constant term. Only pairs that are \eqn{|i-j| \leq h} apart are considered.
+//'
 //' @inheritParams lcv_kern_Wishart
 //' @export
-//' @param h separation vector; only pairs that are \eqn{|i-j| \leq h}
-//'  apart are considered
+//' @param h [int] integer indicating the separation lag
+//' @return a vector of length two containing the log of the summands
 // [[Rcpp::export(lscv_kern_smlnorm)]]
  arma::vec lscvkernsmlnorm(
      const arma::cube &x,

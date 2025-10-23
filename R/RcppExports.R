@@ -78,12 +78,14 @@ rotation_scaling <- function(ang, scale) {
 
 #' Multivariate gamma function
 #'
+#' Given a vector of points \code{x} and an order \code{p}, compute the multivariate gamma function. The function is defined as
+#' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
+#'
 #' @param x [vector] of points at which to evaluate the function
 #' @param p [int] dimension of the multivariate gamma function, strictly positive.
 #' @param log [logical] if \code{TRUE}, returns the log multivariate gamma function.
-#' The function is defined as
-#' \deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
 #' @export
+#' @return a matrix with one column of the same length as \code{x}
 mgamma <- function(x, p, log = FALSE) {
     .Call(`_ksm_mgamma`, x, p, log)
 }
@@ -358,11 +360,12 @@ lscv_kern_Wishart <- function(x, b, h = 1L) {
 #' Least square cross validation criterion for log symmetric matrix normal kernel
 #'
 #' Finite sample h-block leave-one-out approximation to the least
-#' square criterion, omitting constant term.
+#' square criterion, omitting constant term. Only pairs that are \eqn{|i-j| \leq h} apart are considered.
+#'
 #' @inheritParams lcv_kern_Wishart
 #' @export
-#' @param h separation vector; only pairs that are \eqn{|i-j| \leq h}
-#'  apart are considered
+#' @param h [int] integer indicating the separation lag
+#' @return a vector of length two containing the log of the summands
 lscv_kern_smlnorm <- function(x, b, h = 1L) {
     .Call(`_ksm_lscvkernsmlnorm`, x, b, h)
 }

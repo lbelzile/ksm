@@ -11,10 +11,12 @@ mgamma(x, p, log = FALSE)
 
 \item{p}{[int] dimension of the multivariate gamma function, strictly positive.}
 
-\item{log}{[logical] if \code{TRUE}, returns the log multivariate gamma function.
-The function is defined as
-\deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}}
+\item{log}{[logical] if \code{TRUE}, returns the log multivariate gamma function.}
+}
+\value{
+a matrix with one column of the same length as \code{x}
 }
 \description{
-Multivariate gamma function
+Given a vector of points \code{x} and an order \code{p}, compute the multivariate gamma function. The function is defined as
+\deqn{\gamma_p(x) = \pi^{p(p-1)/4}\prod_{i=1}^p \Gamma\{x + (1-i)/2\}.}
 }

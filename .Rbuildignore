@@ -3,3 +3,5 @@
 R/functions.R
 R/simulations.R
 ^LICENSE\.md$
+^CRAN-SUBMISSION$
+^cran-comments\.md$
