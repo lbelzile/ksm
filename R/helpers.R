@@ -96,6 +96,7 @@ rWAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
 #' @param kernel string, one of \code{Wishart}, \code{smlnorm} (log-Gaussian) or \code{smnorm} (Gaussian).
 #' @param tol double, tolerance of optimization (root search)
 #' @param h lag step for consideration of observations, for the case \code{criterion=lscv}
+#' @param bounds vector of length 2 containing the bounds for the search
 #' @export
 #' @return double, the optimal bandwidth up to \code{tol}
 bandwidth_optim <- function(
@@ -103,7 +104,8 @@ bandwidth_optim <- function(
   criterion = c("lscv", "lcv"),
   kernel = c("Wishart", "smlnorm", "smnorm"),
   tol = 1e-4,
-  h = 1L
+  h = 1L,
+  bounds = c(1e-4, 10)
 ) {
   criterion <- match.arg(criterion)
   kernel <- match.arg(kernel)
@@ -130,11 +132,13 @@ bandwidth_optim <- function(
       c(lcv_kdens_symmat(x = x, b = band, kernel = kernel)$lcv)
     }
   }
-
+  stopifnot(isTRUE(all(is.finite(bounds))))
+  bounds <- sort(bounds)
+  stopifnot(length(bounds) == 2L, bounds[1] > 0)
   optimize(
     f = optfun,
-    lower = 1e-4,
-    upper = 10,
+    lower = bounds[1],
+    upper = bounds[2],
     maximum = TRUE,
     tol = tol
   )$maximum

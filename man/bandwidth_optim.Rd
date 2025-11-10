@@ -9,7 +9,8 @@ bandwidth_optim(
   criterion = c("lscv", "lcv"),
   kernel = c("Wishart", "smlnorm", "smnorm"),
   tol = 1e-04,
-  h = 1L
+  h = 1L,
+  bounds = c(1e-04, 10)
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ bandwidth_optim(
 \item{tol}{double, tolerance of optimization (root search)}
 
 \item{h}{lag step for consideration of observations, for the case \code{criterion=lscv}}
+
+\item{bounds}{vector of length 2 containing the bounds for the search}
 }
 \value{
 double, the optimal bandwidth up to \code{tol}
