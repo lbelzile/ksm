@@ -14,7 +14,7 @@ lscv_kern_Wishart(x, b, h = 1L)
 \item{h}{separation vector; only pairs that are \eqn{|i-j| \leq h} apart are considered}
 }
 \value{
-a vector of length two containing the log of the summands
+a double containing the a vector of length two containing the log of the summands
 }
 \description{
 Finite sample h-block leave-one-out approximation to the least

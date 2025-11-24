@@ -4,12 +4,14 @@
 \alias{lcv_kern_smnorm}
 \title{Likelihood cross validation criterion for symmetric matrix normal kernel}
 \usage{
-lcv_kern_smnorm(x, b)
+lcv_kern_smnorm(x, b, h = 1L)
 }
 \arguments{
 \item{x}{[cube] array of dimension \code{d} by \code{d} by \code{n}}
 
 \item{b}{[numeric] scale parameter, strictly positive}
+
+\item{h}{integer lag for excluding observations}
 }
 \value{
 the value of the log objective function
@@ -17,5 +19,5 @@ the value of the log objective function
 \description{
 Given a cube \code{x} and a bandwidth \code{b}, compute
 the leave-one-out cross validation criterion by taking out a slice
-and evaluating the kernel at the holdout value.
+and evaluating the kernel at the holdout values, excluding points that are at distance at least \code{h-1} apart.
 }

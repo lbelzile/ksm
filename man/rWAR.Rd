@@ -4,7 +4,7 @@
 \alias{rWAR}
 \title{Random matrix generation from first-order autoregressive Wishart process}
 \usage{
-rWAR(n, M, Sigma, K = 1L, order = 1L, burnin = 25L)
+rWAR(n, M, Sigma, K = NULL, order = 1L, burnin = 25L)
 }
 \arguments{
 \item{n}{sample size}

@@ -229,47 +229,51 @@ dsmlnorm_mat <- function(x, matlog_x, b, M, matlog_M, log = TRUE) {
 #'
 #' Given a cube \code{x} and a bandwidth \code{b}, compute
 #' the leave-one-out cross validation criterion by taking out a slice
-#' and evaluating the kernel at the holdout value.
+#' and evaluating the kernel at the holdout value, excluding points that are at distance at least \code{h-1} apart.
+#' @param h integer lag for excluding observations
 #' @export
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
-lcv_kern_smlnorm <- function(x, b) {
-    .Call(`_ksm_lcvkernsmlnorm`, x, b)
+lcv_kern_smlnorm <- function(x, b, h = 1L) {
+    .Call(`_ksm_lcvkernsmlnorm`, x, b, h)
 }
 
 #' Likelihood cross validation criterion for symmetric matrix normal kernel
 #'
 #' Given a cube \code{x} and a bandwidth \code{b}, compute
 #' the leave-one-out cross validation criterion by taking out a slice
-#' and evaluating the kernel at the holdout value.
+#' and evaluating the kernel at the holdout values, excluding points that are at distance at least \code{h-1} apart.
+#' @param h integer lag for excluding observations
 #' @export
 #' @inheritParams dsmlnorm
 #' @return the value of the log objective function
-lcv_kern_smnorm <- function(x, b) {
-    .Call(`_ksm_lcvkernsmnorm`, x, b)
+lcv_kern_smnorm <- function(x, b, h = 1L) {
+    .Call(`_ksm_lcvkernsmnorm`, x, b, h)
 }
 
 #' Likelihood cross validation criterion for Wishart kernel
 #'
 #' Given a cube \code{x} and a bandwidth \code{b}, compute
 #' the leave-one-out cross validation criterion by taking out a slice
-#' and evaluating the kernel at the holdout value.
+#' and evaluating the kernel at the holdout value, excluding points that are at distance at least \code{h-1} apart.
 #'
+#' @param h integer lag for excluding observations
 #' @inheritParams dsmlnorm
 #' @export
 #' @return the value of the log objective function
-lcv_kern_Wishart <- function(x, b) {
-    .Call(`_ksm_lcvkernWishart`, x, b)
+lcv_kern_Wishart <- function(x, b, h = 1) {
+    .Call(`_ksm_lcvkernWishart`, x, b, h)
 }
 
 #' Likelihood cross-validation for symmetric positive definite matrix kernels
 #'
 #' Given a cube of sample observations (consisting of random symmetric positive definite matrices), and a vector of candidate bandwidth parameters \code{b},
 #' compute the leave-one-out likelihood cross-validation criterion and
-#' return the bandwidth among the choices that minimizes the criterion.
+#' return the bandwidth among the choices that maximizes the criterion.
 #' @param x array of dimension \code{d} by \code{d} by \code{n}
 #' @param b vector of candidate bandwidth, strictly positive
-#' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+#' @param kernel string indicating the kernel, one of \code{Wishart}, \code{smlnorm} or \code{smnorm}.
+#' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
 #' @importFrom utils tail
 #' @import Rcpp
 #' @export
@@ -277,11 +281,12 @@ lcv_kern_Wishart <- function(x, b) {
 #' \itemize{
 #' \item \code{lcv} vector of likelihood cross validation criterion
 #' \item \code{b} vector of candidate bandwidth
+#' \item \code{h} lag for leave-one-out
 #' \item \code{bandwidth} optimal bandwidth among candidates
 #' \item \code{kernel} string indicating the choice of kernel function
 #'}
-lcv_kdens_symmat <- function(x, b, kernel = "Wishart") {
-    .Call(`_ksm_lcvsymmat`, x, b, kernel)
+lcv_kdens_symmat <- function(x, b, h = 1L, kernel = "Wishart") {
+    .Call(`_ksm_lcvsymmat`, x, b, h, kernel)
 }
 
 #' Wishart kernel density
@@ -352,7 +357,7 @@ kdens_symmat <- function(x, xs, kernel = "Wishart", b = 1, log = TRUE) {
 #' @inheritParams lcv_kern_Wishart
 #' @export
 #' @param h separation vector; only pairs that are \eqn{|i-j| \leq h} apart are considered
-#' @return a vector of length two containing the log of the summands
+#' @return a double containing the a vector of length two containing the log of the summands
 lscv_kern_Wishart <- function(x, b, h = 1L) {
     .Call(`_ksm_lscvkernwishart`, x, b, h)
 }
@@ -365,9 +370,31 @@ lscv_kern_Wishart <- function(x, b, h = 1L) {
 #' @inheritParams lcv_kern_Wishart
 #' @export
 #' @param h [int] integer indicating the separation lag
-#' @return a vector of length two containing the log of the summands
+#' @return a double containing the log of the least square cross validation criterion
 lscv_kern_smlnorm <- function(x, b, h = 1L) {
     .Call(`_ksm_lscvkernsmlnorm`, x, b, h)
+}
+
+#' Least square cross-validation for symmetric positive definite matrix kernels
+#'
+#' Given a cube of sample observations (consisting of random symmetric positive definite matrices), and a vector of candidate bandwidth parameters \code{b},
+#' compute the least square likelihood cross-validation criterion and
+#' return the bandwidth among the choices that minimizes the criterion.
+#' @param x array of dimension \code{d} by \code{d} by \code{n}
+#' @param b vector of candidate bandwidth, strictly positive
+#' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+#' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
+#' @export
+#' @return a list with arguments
+#' \itemize{
+#' \item \code{lscv} vector of likelihood cross validation criterion
+#' \item \code{b} vector of candidate bandwidth
+#' \item \code{h} lag for leave-one-out
+#' \item \code{bandwidth} optimal bandwidth among candidates
+#' \item \code{kernel} string indicating the choice of kernel function
+#'}
+lscv_kdens_symmat <- function(x, b, h = 1L, kernel = "Wishart") {
+    .Call(`_ksm_lscvsymmat`, x, b, h, kernel)
 }
 
 #' Random vector generation from the multivariate normal distribution

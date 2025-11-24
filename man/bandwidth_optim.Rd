@@ -33,3 +33,10 @@ double, the optimal bandwidth up to \code{tol}
 Given a sample of positive definite matrices,
 perform numerical maximization of the \code{h}-block least square (\code{lscv}) or leave-one-out likelihood (\code{lcv}) cross-validation criteria using a root search.
 }
+\examples{
+x <- simu_rdens(n = 100, model = 3, d = 3)
+bandwidth_optim(x = x,
+ criterion = "lscv",
+ kernel = "Wishart",
+ h = 2L)
+}

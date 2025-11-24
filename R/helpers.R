@@ -69,12 +69,25 @@ rVAR <- function(
 #' M <- matrix(c(0.3, -0.3, -0.3, 0.3), nrow = 2)
 #' Sigma <- matrix(c(1, 0.5, 0.5, 1), nrow = 2)
 #' rWAR(n = 10, M = M, Sigma = Sigma, K = 5)
-rWAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
+rWAR <- function(n, M, Sigma, K = NULL, order = 1L, burnin = 25L) {
+  Sigma <- as.matrix(Sigma)
   d <- ncol(Sigma)
   order <- as.integer(order)
+  if (is.null(K)) {
+    K <- d
+  } else {
+    K <- as.integer(K)
+    if (isTRUE(K < d)) {
+      stop(
+        "Invalid WAR model: the degrees of freedom should be at least the dimension of the covariance matrix."
+      )
+    }
+  }
+
   if (order != 1L) {
     stop("Only first order autoregressive model is supported at current.")
   }
+
   # Generate the VAR(1) collection as a list of matrices
   X_list <- rVAR(n = n, M = M, Sigma = Sigma, K = K, burnin = burnin)
   array(
@@ -99,6 +112,12 @@ rWAR <- function(n, M, Sigma, K = 1L, order = 1L, burnin = 25L) {
 #' @param bounds vector of length 2 containing the bounds for the search
 #' @export
 #' @return double, the optimal bandwidth up to \code{tol}
+#' @examples
+#' x <- simu_rdens(n = 100, model = 3, d = 3)
+#' bandwidth_optim(x = x,
+#'  criterion = "lscv",
+#'  kernel = "Wishart",
+#'  h = 2L)
 bandwidth_optim <- function(
   x,
   criterion = c("lscv", "lcv"),
@@ -109,6 +128,8 @@ bandwidth_optim <- function(
 ) {
   criterion <- match.arg(criterion)
   kernel <- match.arg(kernel)
+  h <- as.integer(h)
+  stopifnot(h >= 1L, h < dim(x)[3])
   if (criterion == "lscv" & kernel == "smnorm") {
     stop(
       "Least square cross validation not currently implemented for matrix normal kernel estimator."
@@ -117,31 +138,52 @@ bandwidth_optim <- function(
   if (criterion == "lscv") {
     if (kernel == "Wishart") {
       optfun <- function(band) {
+        # minimize lscv
         fn <- lscv_kern_Wishart(x = x, b = band, h = h)
-        -exp(fn[1]) + exp(fn[2])
+        -fn #-exp(fn[1]) + exp(fn[2])
       }
     } else if (kernel == "smlnorm") {
       optfun <- function(band) {
         fn <- lscv_kern_smlnorm(x = x, b = band, h = h)
-        -exp(fn[1]) + exp(fn[2])
+        -fn #-exp(fn[1]) + exp(fn[2])
       }
     }
   } else {
     # LCV
     optfun <- function(band) {
-      c(lcv_kdens_symmat(x = x, b = band, kernel = kernel)$lcv)
+      c(lcv_kdens_symmat(x = x, b = band, kernel = kernel, h = h)$lcv)
     }
   }
   stopifnot(isTRUE(all(is.finite(bounds))))
   bounds <- sort(bounds)
   stopifnot(length(bounds) == 2L, bounds[1] > 0)
-  optimize(
+  opt <- optimize(
     f = optfun,
     lower = bounds[1],
     upper = bounds[2],
     maximum = TRUE,
     tol = tol
   )$maximum
+  # If the bounds are not enough,
+  if ((opt - bounds[1]) < 1e-3) {
+    opt <- optimize(
+      f = optfun,
+      lower = 1e-8,
+      upper = bounds[1] * 1.1,
+      maximum = TRUE,
+      tol = tol
+    )$maximum
+  }
+  if ((bounds[2] - opt) < 1e-3) {
+    opt <- optimize(
+      f = optfun,
+      lower = bounds[2] * 0.9,
+      upper = 1e4,
+      maximum = TRUE,
+      tol = tol
+    )$maximum
+  }
+  return(opt)
 }
 
 

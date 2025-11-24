@@ -623,12 +623,13 @@ double dsmlnorm_mat(
 //'
 //' Given a cube \code{x} and a bandwidth \code{b}, compute
 //' the leave-one-out cross validation criterion by taking out a slice
-//' and evaluating the kernel at the holdout value.
+//' and evaluating the kernel at the holdout value, excluding points that are at distance at least \code{h-1} apart.
+//' @param h integer lag for excluding observations
 //' @export
 //' @inheritParams dsmlnorm
 //' @return the value of the log objective function
 // [[Rcpp::export(lcv_kern_smlnorm)]]
-double lcvkernsmlnorm(const arma::cube &x, const double &b){
+double lcvkernsmlnorm(const arma::cube &x, const double &b, const int &h = 1){
   arma::uword n = x.n_slices;
   arma::uword d = x.n_cols;
   arma::cube logmat_x(d, d, n);
@@ -647,6 +648,7 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b){
   logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
 
   for(arma::uword k = 0; k < n; k++){
+    loo.zeros();
     it = 0;
     logjac = 0;
     // Eigenvalues are stored in ASCENDING order
@@ -666,12 +668,12 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b){
     }
     logjac -= arma::accu(log_eigvals);
     for(arma::uword j = 0; j < n; j++){
-      if(k != j){
+      if(std::abs((int) (k - j)) >= h){
       loo(it) = - arma::accu(arma::pow(logmat_x.slice(k) - logmat_x.slice(j), 2.0)) * 0.5  / b;
         it++;
     }
     }
-    logcrit += meanlog(loo) + logjac;
+    logcrit += meanlog(loo.subvec(0, it-1)) + logjac;
   }
   logcrit = logcrit / n - logcst;
   return logcrit;
@@ -682,12 +684,13 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b){
 //'
 //' Given a cube \code{x} and a bandwidth \code{b}, compute
 //' the leave-one-out cross validation criterion by taking out a slice
-//' and evaluating the kernel at the holdout value.
+//' and evaluating the kernel at the holdout values, excluding points that are at distance at least \code{h-1} apart.
+//' @param h integer lag for excluding observations
 //' @export
 //' @inheritParams dsmlnorm
 //' @return the value of the log objective function
 // [[Rcpp::export(lcv_kern_smnorm)]]
-double lcvkernsmnorm(const arma::cube &x, const double &b){
+double lcvkernsmnorm(const arma::cube &x, const double &b, const int &h = 1){
    arma::uword n = x.n_slices;
    arma::uword d = x.n_cols;
    arma::vec loo(n - 1);
@@ -696,14 +699,15 @@ double lcvkernsmnorm(const arma::cube &x, const double &b){
    double logcst;
    logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
    for(arma::uword k = 0; k < n; k++){
+     loo.zeros();
      it = 0;
      for(arma::uword j = 0; j < n; j++){
-       if(k != j){
+       if(std::abs((int) (k - j)) >= h){
          loo(it) = - arma::accu(arma::pow(x.slice(k) - x.slice(j), 2.0)) * 0.5  / b;
          it++;
        }
      }
-     logcrit += meanlog(loo);
+     logcrit += meanlog(loo.subvec(0,it-1));
    }
    logcrit = logcrit / n - logcst;
    return logcrit;
@@ -714,13 +718,14 @@ double lcvkernsmnorm(const arma::cube &x, const double &b){
 //'
 //' Given a cube \code{x} and a bandwidth \code{b}, compute
 //' the leave-one-out cross validation criterion by taking out a slice
-//' and evaluating the kernel at the holdout value.
+//' and evaluating the kernel at the holdout value, excluding points that are at distance at least \code{h-1} apart.
 //'
+//' @param h integer lag for excluding observations
 //' @inheritParams dsmlnorm
 //' @export
 //' @return the value of the log objective function
 // [[Rcpp::export(lcv_kern_Wishart)]]
-double lcvkernWishart(const arma::cube &x, const double &b){
+double lcvkernWishart(const arma::cube &x, const double &b, const double &h = 1){
    arma::uword n = x.n_slices;
    arma::uword d = x.n_cols;
    double bandwidth = 1.0 / b + d + 1.0;
@@ -744,13 +749,13 @@ double lcvkernWishart(const arma::cube &x, const double &b){
      loo.zeros();
      Sinv = arma::inv_sympd(x.slice(k));
      for(arma::uword j = 0; j < n; j++){
-       if(k != j){
+       if(std::abs((int) (k - j)) >= h){
          // Determinants can be recycled
        loo(it) =  0.5 / b * (logdetx(j)  - arma::accu(Sinv % x.slice(j))) + logcst - bandwidth * 0.5 * logdetx(k);
       it++;
       }
      }
-     logcrit += meanlog(loo);
+     logcrit += meanlog(loo.subvec(0,it-1));
    }
    logcrit = logcrit / n;
    return logcrit;
@@ -760,10 +765,11 @@ double lcvkernWishart(const arma::cube &x, const double &b){
 //'
 //' Given a cube of sample observations (consisting of random symmetric positive definite matrices), and a vector of candidate bandwidth parameters \code{b},
 //' compute the leave-one-out likelihood cross-validation criterion and
-//' return the bandwidth among the choices that minimizes the criterion.
+//' return the bandwidth among the choices that maximizes the criterion.
 //' @param x array of dimension \code{d} by \code{d} by \code{n}
 //' @param b vector of candidate bandwidth, strictly positive
-//' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+//' @param kernel string indicating the kernel, one of \code{Wishart}, \code{smlnorm} or \code{smnorm}.
+//' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
 //' @importFrom utils tail
 //' @import Rcpp
 //' @export
@@ -771,6 +777,7 @@ double lcvkernWishart(const arma::cube &x, const double &b){
 //' \itemize{
 //' \item \code{lcv} vector of likelihood cross validation criterion
 //' \item \code{b} vector of candidate bandwidth
+//' \item \code{h} lag for leave-one-out
 //' \item \code{bandwidth} optimal bandwidth among candidates
 //' \item \code{kernel} string indicating the choice of kernel function
 //'}
@@ -778,29 +785,32 @@ double lcvkernWishart(const arma::cube &x, const double &b){
 Rcpp::List lcvsymmat(
     const arma::cube &x,
     const arma::vec b,
+    const int &h = 1,
     std::string kernel = "Wishart"){
  int nl = (int) b.n_elem;
  Rcpp::NumericVector crit(nl);
  if(kernel == "Wishart"){
    for(int i = 0; i < nl; i++){
-     crit[i] = lcvkernWishart(x, b(i));
+     crit[i] = lcvkernWishart(x, b(i), h);
    }
  } else if(kernel == "smlnorm"){
    for(int i = 0; i < nl; i++){
-     crit[i] = lcvkernsmlnorm(x, b(i));
+     crit[i] = lcvkernsmlnorm(x, b(i), h);
    }
  } else if(kernel == "smnorm"){
    for(int i = 0; i < nl; i++){
-     crit[i] = lcvkernsmnorm(x, b(i));
+     crit[i] = lcvkernsmnorm(x, b(i), h);
    }
  } else{
   Rcpp::stop("Invalid kernel choice.");
  }
- int bmin = Rcpp::which_min(crit);
+ int bmax = Rcpp::which_max(crit);
+ Rcpp::NumericVector bv = Rcpp::NumericVector(b.begin(), b.end());
  return Rcpp::List::create(
    Rcpp::Named("lcv") = crit,
-   Rcpp::Named("b") = b,
-   Rcpp::Named("bandwidth") = b(bmin),
+   Rcpp::Named("b") = bv,
+   Rcpp::Named("h") = h,
+   Rcpp::Named("bandwidth") = b(bmax),
    Rcpp::Named("kernel") = kernel
  );
 }
@@ -856,8 +866,6 @@ Rcpp::NumericVector kdensWishart(
     logdens_k.zeros();
     Sinv = arma::inv_sympd(x.slice(k));
     for(arma::uword j = 0; j < m; j++){
-        // TODO: finish this to avoid recomputing unnecessarily everything
-        // Determinants can be recycled
         logdens_k(j) =  0.5 / b * (logdet_xs(j)  - arma::accu(Sinv % xs.slice(j))) + logcst - bandwidth * 0.5 * logdet_x(k);
     }
   logdens[k] = meanlog(logdens_k);
@@ -1101,9 +1109,9 @@ Rcpp::NumericVector kdens_symmat(
 //' @inheritParams lcv_kern_Wishart
 //' @export
 //' @param h separation vector; only pairs that are \eqn{|i-j| \leq h} apart are considered
-//' @return a vector of length two containing the log of the summands
+//' @return a double containing the a vector of length two containing the log of the summands
 // [[Rcpp::export(lscv_kern_Wishart)]]
-arma::vec lscvkernwishart(
+double lscvkernwishart(
     const arma::cube &x,
     const double &b,
     const int &h = 1){
@@ -1136,8 +1144,6 @@ arma::vec lscvkernwishart(
  // Temporary solution (perhaps error-prone)
  // We average every ith round, then multiply by the number of summands
  // Keep everything on the log scale
- // Some discrepancy with the formula
- // TODO avoid computing every determinant twice needlessly
   double bcst = 1.0 / b + 0.5 * (1.0 + d);
  double logcst =  - 2.0 * std::log(n) +
    - rd * (std::log(b) + log2) +
@@ -1166,8 +1172,6 @@ arma::vec lscvkernwishart(
     if(std::abs((int) (j-i)) >= (int) h){
       // The log kernel contribution isn't symmetric, however
      nt++;
-
-      // TODO speed this up
      logkern(nh) =  0.5 / b * (logdet_x(j)  - arma::accu(Sinv % x.slice(j))) - bandwidth * 0.5 * logdet_x(i);
      nh++;
     }
@@ -1176,15 +1180,15 @@ arma::vec lscvkernwishart(
     sumlogdets(i) = sumlog(logdets.rows(0, i));
     sumlogkern(i) = sumlog(logkern.rows(0, nh - 1)) + logcst2;
   }
-  //Rcpp::LogicalVector sgn = {1,0};
+  Rcpp::LogicalVector sgn = {1,0};
   obj(0) = sumlog(sumlogdets) + logcst;
   // cout << nt << "and difference" << n * (n - h) << std::endl;
   obj(1) = sumlog(sumlogkern) + log2 - std::log(nt); // nt = n * (n-h)
-  //double out = sumsignedlog(obj, sgn);
-  return obj;
+  double out = std::exp(obj(0)) - std::exp(obj(1));
+  // double out = sumsignedlog(obj, sgn);
+  // return obj;
+  return out;
  }
-
-
 
 //' Least square cross validation criterion for log symmetric matrix normal kernel
 //'
@@ -1194,9 +1198,9 @@ arma::vec lscvkernwishart(
 //' @inheritParams lcv_kern_Wishart
 //' @export
 //' @param h [int] integer indicating the separation lag
-//' @return a vector of length two containing the log of the summands
+//' @return a double containing the log of the least square cross validation criterion
 // [[Rcpp::export(lscv_kern_smlnorm)]]
- arma::vec lscvkernsmlnorm(
+double lscvkernsmlnorm(
      const arma::cube &x,
      const double &b,
      const int &h = 1){
@@ -1254,8 +1258,58 @@ arma::vec lscvkernwishart(
    //Rcpp::LogicalVector sgn = {1,0};
    obj(0) = sumlog(sumlogetr) - logcst;
    obj(1) = sumlog(sumlogkern) + log2 - std::log(nt);
+   double out = std::exp(obj(0)) - std::exp(obj(1));
    //double out = sumsignedlog(obj, sgn);
-   return obj;
+   //return obj;
+   return out;
+ }
+
+
+
+//' Least square cross-validation for symmetric positive definite matrix kernels
+//'
+//' Given a cube of sample observations (consisting of random symmetric positive definite matrices), and a vector of candidate bandwidth parameters \code{b},
+//' compute the least square likelihood cross-validation criterion and
+//' return the bandwidth among the choices that minimizes the criterion.
+//' @param x array of dimension \code{d} by \code{d} by \code{n}
+//' @param b vector of candidate bandwidth, strictly positive
+//' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+//' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
+//' @export
+//' @return a list with arguments
+//' \itemize{
+//' \item \code{lscv} vector of likelihood cross validation criterion
+//' \item \code{b} vector of candidate bandwidth
+//' \item \code{h} lag for leave-one-out
+//' \item \code{bandwidth} optimal bandwidth among candidates
+//' \item \code{kernel} string indicating the choice of kernel function
+//'}
+// [[Rcpp::export(lscv_kdens_symmat)]]
+ Rcpp::List lscvsymmat(
+     const arma::cube &x,
+     const arma::vec b,
+     const int &h = 1,
+     std::string kernel = "Wishart"){
+   int nl = (int) b.n_elem;
+   Rcpp::NumericVector crit(nl);
+   if(kernel == "Wishart"){
+     for(int i = 0; i < nl; i++){
+       crit[i] = lscvkernwishart(x, b(i), h);
+     }
+   } else if(kernel == "smlnorm"){
+     for(int i = 0; i < nl; i++){
+       crit[i] = lscvkernsmlnorm(x, b(i), h);
+     }
+   }
+   int bmin = Rcpp::which_min(crit);
+   Rcpp::NumericVector bv = Rcpp::NumericVector(b.begin(), b.end()); //Rcpp::wrap(b);
+   return Rcpp::List::create(
+     Rcpp::Named("lscv") = crit,
+     Rcpp::Named("b") = bv,
+     Rcpp::Named("h") = h,
+     Rcpp::Named("bandwidth") = b(bmin),
+     Rcpp::Named("kernel") = kernel
+   );
  }
 
 
@@ -1340,11 +1394,12 @@ Rcpp::NumericVector fdens(const arma::cube &x, const int &model, const int &d){
   } else if(model == 5){
     res = dmbeta2(x, 0.5 * d + 1, 0.5 * d + 1, false);
   } else if(model == 6){
-    res = dmbeta2(x, 0.5 * d, 0.5 * d + 2.0, false);
+    res = dmbeta2(x, 0.5 * d + 3.0, 0.5 * d + 5.0, false);
   } else{
     Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
   }
-  return Rcpp::NumericVector(Rcpp::wrap(res));
+  Rcpp::NumericVector resR = Rcpp::NumericVector(res.begin(), res.end());
+  return resR;
 }
 
 //' Target densities for simulation study
@@ -1397,7 +1452,7 @@ arma::cube rdens(int n, const int &model,  const int &d){
   } else if(model == 5){
     return rmbeta2(n, d, 0.5 * d + 1, 0.5 * d + 1);
   } else if(model == 6){
-    return rmbeta2(n, d, 0.5*d, 0.5*d + 2);
+    return rmbeta2(n, d, 0.5*d + 3, 0.5*d + 5);
   } else{
     Rcpp::stop("Invalid model, must be an integer between 1 and 6.");
   }

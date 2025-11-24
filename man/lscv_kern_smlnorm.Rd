@@ -14,7 +14,7 @@ lscv_kern_smlnorm(x, b, h = 1L)
 \item{h}{[int] integer indicating the separation lag}
 }
 \value{
-a vector of length two containing the log of the summands
+a double containing the log of the least square cross validation criterion
 }
 \description{
 Finite sample h-block leave-one-out approximation to the least
