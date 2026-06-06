@@ -378,7 +378,7 @@ arma::vec dsmnorm(
   logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
   arma::vec logdens(n);
   for(arma::uword i = 0; i < n; i++){
-   logdens(i) = - arma::accu(arma::pow(x.slice(i) - M, 2.0)) / (2.0 * b) - logcst;
+   logdens(i) = - arma::accu(arma::square(x.slice(i) - M)) / (2.0 * b) - logcst;
   }
   if(log){
     return logdens;
@@ -399,7 +399,7 @@ double dsmnorm_mat(
   }
   double logcst;
   logcst = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
-    double logdens = - arma::accu(arma::pow(x - M, 2.0)) / (2.0 * b) - logcst;
+    double logdens = - arma::accu(arma::square(x - M)) / (2.0 * b) - logcst;
   if(log){
     return logdens;
   } else{
@@ -669,7 +669,7 @@ double lcvkernsmlnorm(const arma::cube &x, const double &b, const int &h = 1){
     logjac -= arma::accu(log_eigvals);
     for(arma::uword j = 0; j < n; j++){
       if(std::abs((int) (k - j)) >= h){
-      loo(it) = - arma::accu(arma::pow(logmat_x.slice(k) - logmat_x.slice(j), 2.0)) * 0.5  / b;
+      loo(it) = - arma::accu(arma::square(logmat_x.slice(k) - logmat_x.slice(j))) * 0.5  / b;
         it++;
     }
     }
@@ -703,7 +703,7 @@ double lcvkernsmnorm(const arma::cube &x, const double &b, const int &h = 1){
      it = 0;
      for(arma::uword j = 0; j < n; j++){
        if(std::abs((int) (k - j)) >= h){
-         loo(it) = - arma::accu(arma::pow(x.slice(k) - x.slice(j), 2.0)) * 0.5  / b;
+         loo(it) = - arma::accu(arma::square(x.slice(k) - x.slice(j))) * 0.5  / b;
          it++;
        }
      }
@@ -977,7 +977,7 @@ Rcpp::NumericVector kdenssmlnorm(
     logdens_k.zeros();
     logmat_x_i = arma::logmat_sympd(x.slice(i));
     for(arma::uword j = 0; j < m; j++){
-      logdens_k(j) = - accu(arma::pow(logmat_x_i - logmat_xs.slice(j), 2.0)) / (2.0 * b);
+      logdens_k(j) = - accu(arma::square(logmat_x_i - logmat_xs.slice(j))) / (2.0 * b);
     }
     logdens[i] = logdens[i] + meanlog(logdens_k) - logcst;
   }
@@ -1018,7 +1018,7 @@ Rcpp::NumericVector kdenssmnorm(
   for(arma::uword i = 0; i < n; i++){
     logdens_i.zeros();
     for(arma::uword j = 0; j < m; j++){
-      logdens_i(j) = - arma::accu(arma::pow(x.slice(i) - xs.slice(j), 2.0)) / (2.0 * b);
+      logdens_i(j) = - arma::accu(arma::square(x.slice(i) - xs.slice(j))) / (2.0 * b);
     }
     logdens[i] = meanlog(logdens_i) - logcst;
   }
@@ -1144,7 +1144,7 @@ double lscvkernwishart(
  // Temporary solution (perhaps error-prone)
  // We average every ith round, then multiply by the number of summands
  // Keep everything on the log scale
-  double bcst = 1.0 / b + 0.5 * (1.0 + d);
+ double bcst = 1.0 / b + 0.5 * (1.0 + d);
  double logcst =  - 2.0 * std::log(n) +
    - rd * (std::log(b) + log2) +
    lmgamma(1.0 / b + 0.5 * (d + 1.0), d) -
@@ -1182,7 +1182,6 @@ double lscvkernwishart(
   }
   Rcpp::LogicalVector sgn = {1,0};
   obj(0) = sumlog(sumlogdets) + logcst;
-  // cout << nt << "and difference" << n * (n - h) << std::endl;
   obj(1) = sumlog(sumlogkern) + log2 - std::log(nt); // nt = n * (n-h)
   double out = std::exp(obj(0)) - std::exp(obj(1));
   // double out = sumsignedlog(obj, sgn);
@@ -1224,7 +1223,7 @@ double lscvkernsmlnorm(
    // Save on calculations by saving some elements that are recycled
    for(arma::uword i = 0; i < n; i++){
      logmat_x.slice(i) = arma::logmat_sympd(x.slice(i));
-     trmatlog(i) = arma::accu(arma::pow(logmat_x.slice(i), 2.0));
+     trmatlog(i) = arma::accu(arma::square(logmat_x.slice(i)));
    }
    double logcst =
      0.5 * rd * (log2 + std::log(arma::datum::pi) + std::log(b)) +
@@ -1241,13 +1240,13 @@ double lscvkernsmlnorm(
        for(arma::uword j = 0; j < i; j++){
          // This thing is symmetric! no need to compute off-diagonal entries twice
          logmatsum = logmat_x.slice(i) + logmat_x.slice(j);
-         logetr(j) = log2 + 0.5 / b * (0.5 * arma::accu(arma::pow(logmatsum, 2.0)) - trmatlog(i) - trmatlog(j)); // multiplied by 2 because symmetric
+         logetr(j) = log2 + 0.5 / b * (0.5 * arma::accu(arma::square(logmatsum)) - trmatlog(i) - trmatlog(j)); // multiplied by 2 because symmetric
        }
      }
      for(arma::uword j = 0; j < n; j++){
        if(std::abs((int) (j-i)) >= (int) h){
          nt++;
-         logkern(nh) = - accu(arma::pow(logmat_x.slice(j) - logmat_x.slice(i), 2.0)) / (2.0 * b) - logcst2;
+         logkern(nh) = - accu(arma::square(logmat_x.slice(j) - logmat_x.slice(i))) / (2.0 * b) - logcst2;
          nh++;
        }
      }
@@ -1264,7 +1263,78 @@ double lscvkernsmlnorm(
    return out;
  }
 
+//' Least square cross validation criterion for matrix normal kernel
+//'
+//' Finite sample h-block leave-one-out approximation to the least
+//' square criterion, omitting constant term. Only pairs that are \eqn{|i-j| \leq h} apart are considered.
+//'
+//' @inheritParams lcv_kern_Wishart
+//' @export
+//' @param h [int] integer indicating the separation lag
+//' @return a double containing the log of the least square cross validation criterion
+// [[Rcpp::export(lscv_kern_smnorm)]]
+double lscvkernsmnorm(
+     const arma::cube &x,
+     const double &b,
+     const int &h = 1){
+   if(b <= 0){
+     Rcpp::stop("Invalid bandwidth parameter: must be strictly positive.");
+   }
+   arma::uword n = x.n_slices;
+   arma::uword d = x.n_rows;
+   double rd = 0.5 * (1.0 + d) * d;
+   arma::vec obj(2);
+   double log2 = std::log(2);
+   int nh;
+   int nt = 0;
+   arma::vec kern(n);
+   arma::vec etr(n);
+   arma::vec sumlogetr(n);
+   arma::vec sumlogkern(n);
+   arma::vec trmat(n);
+   arma::mat matsum(d,d);
+   // Reduce calculations by saving some elements that are recycled
+   for(arma::uword i = 0; i < n; i++){
+     trmat(i) = arma::accu(arma::square(x.slice(i)));
+   }
+   double logcst =
+     0.5 * rd * (log2 + std::log(arma::datum::pi) + std::log(b)) +
+     0.5 * d * log2 + 2 * std::log(n);
 
+   double logcst2;
+   logcst2 = 0.25 * d * (d + 1.0) * std::log(2.0 * arma::datum::pi * b) - 0.25 * d * (d - 1.0) * std::log(2);
+   for(arma::uword i = 0; i < n; i++){
+     nh = 0;
+     kern.zeros();
+     etr.zeros();
+     // Diagonal terms (i, i) are exactly zero
+     if(i > 0){
+       for(arma::uword j = 0; j < i; j++){
+         // This thing is symmetric! no need to compute off-diagonal entries twice
+         // trace of X * t(X) for X symmetric = sum of square of all matrix elements
+         matsum = x.slice(i) + x.slice(j);
+         etr(j) = log2 + 0.5 / b * (0.5 * arma::accu(arma::square(matsum)) - trmat(i) - trmat(j));
+         // multiplied by 2 because symmetric
+       }
+     }
+     for(arma::uword j = 0; j < n; j++){
+       if(std::abs((int) (j-i)) >= (int) h){
+           nt++;
+         kern(nh) = - arma::accu(arma::square(x.slice(j) - x.slice(i))) / (2.0 * b) - logcst2;
+         nh++;
+       }
+     }
+     // Compute partial sum with precision, but using the log trick
+     sumlogetr(i) = sumlog(etr.rows(0, i));
+     sumlogkern(i) = sumlog(kern.rows(0, nh - 1));
+   }
+   // Rcpp::LogicalVector sgn = {1,0};
+   obj(0) = sumlog(sumlogetr) - logcst;
+   obj(1) = sumlog(sumlogkern) + log2 - std::log(nt);
+   double out = std::exp(obj(0)) - std::exp(obj(1));
+   //double out = sumsignedlog(obj, sgn);
+   return out;
+ }
 
 //' Least square cross-validation for symmetric positive definite matrix kernels
 //'
@@ -1273,7 +1343,7 @@ double lscvkernsmlnorm(
 //' return the bandwidth among the choices that minimizes the criterion.
 //' @param x array of dimension \code{d} by \code{d} by \code{n}
 //' @param b vector of candidate bandwidth, strictly positive
-//' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+//' @param kernel string indicating the kernel, one of \code{Wishart}, \code{smnorm} or \code{smlnorm}.
 //' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
 //' @export
 //' @return a list with arguments
@@ -1285,7 +1355,7 @@ double lscvkernsmlnorm(
 //' \item \code{kernel} string indicating the choice of kernel function
 //'}
 // [[Rcpp::export(lscv_kdens_symmat)]]
- Rcpp::List lscvsymmat(
+Rcpp::List lscvsymmat(
      const arma::cube &x,
      const arma::vec b,
      const int &h = 1,
@@ -1300,9 +1370,13 @@ double lscvkernsmlnorm(
      for(int i = 0; i < nl; i++){
        crit[i] = lscvkernsmlnorm(x, b(i), h);
      }
+   } else if(kernel == "smnorm"){
+     for(int i = 0; i < nl; i++){
+       crit[i] = lscvkernsmnorm(x, b(i), h);
+     }
    }
    int bmin = Rcpp::which_min(crit);
-   Rcpp::NumericVector bv = Rcpp::NumericVector(b.begin(), b.end()); //Rcpp::wrap(b);
+   Rcpp::NumericVector bv = Rcpp::NumericVector(b.begin(), b.end());
    return Rcpp::List::create(
      Rcpp::Named("lscv") = crit,
      Rcpp::Named("b") = bv,

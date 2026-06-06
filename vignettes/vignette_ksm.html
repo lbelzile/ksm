@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Leo Belzile" />
+
+<meta name="date" content="2025-11-24" />
+
+<title>Overview of the ksm package</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Overview of the ksm package</h1>
+<h4 class="author">Leo Belzile</h4>
+<h4 class="date">2025-11-24</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#evaluation-of-the-kernel-and-bandwidth-optimization" id="toc-evaluation-of-the-kernel-and-bandwidth-optimization">Evaluation
+of the kernel and bandwidth optimization</a></li>
+<li><a href="#integrating-over-positive-definite-matrices" id="toc-integrating-over-positive-definite-matrices">Integrating over
+positive definite matrices</a></li>
+</ul>
+</div>
+
+<p>The <code>ksm</code> package provides functionalities for the kernel
+density estimation for random symmetric positive definite matrices. It
+provides C++ wrappers for estimating the density, with additional
+functionalities for estimating the optimal bandwidth according to the
+least square cross validation (LSCV) and the leave-one-out cross (LCV)
+validation criteria. Three kernels are implemented: the Gaussian
+(<code>smnorm</code>), log-Gaussian (<code>smlnorm</code>) and Wishart
+(<code>Wishart</code>).</p>
+<div id="evaluation-of-the-kernel-and-bandwidth-optimization" class="section level2">
+<h2>Evaluation of the kernel and bandwidth optimization</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2025</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(ksm)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="dv">4</span><span class="dt">L</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="co"># Equicorrelation matrix</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">rep</span>(<span class="fl">0.5</span>, d)) <span class="sc">+</span> <span class="fu">matrix</span>(<span class="fl">0.5</span>, d, d)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co"># Generate simulated data from an inverse Wishart (d by d by n array).</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>samp <span class="ot">&lt;-</span> <span class="fu">rinvWishart</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">df =</span> <span class="dv">10</span>, S)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="fu">dim</span>(samp)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="co">#&gt; [1]   4   4 100</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Optimize the bandwidth for kernel using leave-one-out cross validation</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">bandwidth_optim</span>(</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>  <span class="at">x =</span> samp, </span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;smlnorm&quot;</span>, </span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>  <span class="at">criterion =</span> <span class="st">&quot;lcv&quot;</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="co"># Evaluate kernel with a new psd matrix data point</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>newsamp <span class="ot">&lt;-</span> <span class="fu">rinvWishart</span>(<span class="at">n =</span> <span class="dv">2</span>, <span class="at">df =</span> <span class="dv">10</span>, <span class="at">S =</span> S)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="co"># Kernel density (default to log scale)</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a><span class="fu">kdens_symmat</span>(</span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>  <span class="at">x =</span> newsamp, </span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>  <span class="at">xs =</span> samp, </span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;smlnorm&quot;</span>, </span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>  <span class="at">b =</span> b)</span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="co">#&gt; [1] 15.710544  3.460046</span></span></code></pre></div>
+<p>We can also consider stationary data and exclude observations at lag
+<span class="math inline">\(h\)</span> to account for serial dependence.
+This is illustrated below with a time series of realized variance
+covariance matrix between two assets over 250 days.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(realvar, <span class="at">package =</span> <span class="st">&quot;ksm&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">dim</span>(realvar)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt; [1]   2   2 250</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Select suitable lag for least square cross validation</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>h <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(<span class="fu">dim</span>(realvar)[<span class="dv">3</span>]<span class="sc">^</span><span class="fl">0.25</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># Calculate optimal bandwidth</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>bopt <span class="ot">&lt;-</span> <span class="fu">bandwidth_optim</span>(</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">x =</span> realvar, </span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;Wishart&quot;</span>, </span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">criterion =</span> <span class="st">&quot;lscv&quot;</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">h =</span> h)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># Evaluate at multiple values of bandwidth</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>bseq <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.5</span> <span class="sc">*</span> bopt, <span class="dv">2</span> <span class="sc">*</span> bopt, <span class="at">length.out =</span> <span class="dv">101</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>lscv <span class="ot">&lt;-</span> ksm<span class="sc">::</span><span class="fu">lscv_kdens_symmat</span>(</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>  <span class="at">x =</span> realvar, </span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="at">b =</span> bseq, </span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="at">h =</span> h, </span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;Wishart&quot;</span>)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="fu">with</span>(lscv, </span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>     <span class="fu">plot</span>(<span class="at">x =</span> b, </span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>          <span class="at">y =</span> lscv,</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>          <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, </span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>          <span class="at">panel.first =</span> {</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>            <span class="fu">abline</span>(<span class="at">v =</span> bopt, <span class="at">lty =</span> <span class="dv">2</span>, <span class="at">col =</span> <span class="st">&quot;grey&quot;</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>            },</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>          <span class="at">xlab =</span> <span class="st">&quot;bandwidth&quot;</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>          <span class="at">ylab =</span> <span class="st">&quot;least square cross validation&quot;</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>          )</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>     )</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" style="display: block; margin: auto;" /></p>
+</div>
+<div id="integrating-over-positive-definite-matrices" class="section level2">
+<h2>Integrating over positive definite matrices</h2>
+<p>We can also make integration in dimensions <span class="math inline">\(d \in \{2, 3\}\)</span> to evaluate numerically
+the performance of kernels on simulated data. The function
+<code>integrate_spd</code> performs a transformation of inputs for
+numerical integration with routines from the <code>cubature</code>
+package. This is useful for checking correct implementation: below, we
+check that the density of a Wishart integrates to unity over the space
+of positive definite matrices.</p>
+<p>Different methods for integration are provided: we recommend in
+particular <code>cuhre</code>, <code>suave</code> or
+<code>hcubature</code>. The <code>lb</code> argument controls the
+smaller value for the eigenvalues, which sometimes returns matrices that
+are close to being non-positive definite. If such an error mistake
+arises, consider setting <code>lb</code> to a small value.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Check that Wishart density integrates to unity</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>(int <span class="ot">&lt;-</span> <span class="fu">integrate_spd</span>(</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">dim =</span> <span class="dv">2</span><span class="dt">L</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">neval =</span> <span class="fl">1e5</span>L,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">f =</span> <span class="cf">function</span>(x, S){</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>   <span class="fu">dWishart</span>(x, <span class="at">df =</span> <span class="dv">10</span>, <span class="at">S =</span> S, <span class="at">log =</span> <span class="cn">FALSE</span>)},</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">S =</span> <span class="fu">diag</span>(<span class="dv">2</span>),<span class="at">lb =</span> <span class="dv">0</span>, <span class="at">method =</span> <span class="st">&quot;hcubature&quot;</span>))</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; $integral</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; [1] 0.9999433</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; $error</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; [1] 0.0009986894</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; $neval</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] 30723</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; $returnCode</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="fu">isTRUE</span>(<span class="fu">all.equal</span>(int<span class="sc">$</span>integral, <span class="dv">1</span>, <span class="at">tol =</span> <span class="dv">2</span><span class="sc">*</span>int<span class="sc">$</span>error))</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<p>The main use for the <code>integrate_spd</code> function is to
+calculate the integrated squared error for data simulated from some
+density. We do this here for different models that generate independent
+and identically distributed matrices from a mixture of Wishart
+densities. The function here relies on predefined models from functions
+<code>simu_rdens</code> and <code>simu_fdens</code> used in the
+simulation studies of the paper for the independent and identically
+distributed scenario.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Integrated squared error</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>ISE <span class="ot">&lt;-</span> <span class="cf">function</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  S,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  x,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  bandwidth,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">model =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="fu">c</span>(<span class="st">&quot;Wishart&quot;</span>, <span class="st">&quot;smlnorm&quot;</span>, <span class="st">&quot;smnorm&quot;</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  ...</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>) {</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  model <span class="ot">&lt;-</span> <span class="fu">match.arg</span>(<span class="fu">as.character</span>(model), <span class="at">choices =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  kernel <span class="ot">&lt;-</span> <span class="fu">match.arg</span>(kernel)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  dim <span class="ot">&lt;-</span> <span class="fu">ncol</span>(x)</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="co"># Compute the squared difference between the kernel and the target density</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  (</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>    ksm<span class="sc">::</span><span class="fu">kdens_symmat</span>(</span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>      <span class="at">x =</span> S,</span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>      <span class="at">xs =</span> x,</span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>      <span class="at">b =</span> bandwidth,</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>      <span class="at">kernel =</span> kernel,</span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>      <span class="at">log =</span> <span class="cn">FALSE</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>    ) <span class="sc">-</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>      ksm<span class="sc">::</span><span class="fu">simu_fdens</span>(S, <span class="at">model =</span> model, <span class="at">d =</span> dim)</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>  )<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>}</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co"># Calculate numerical integral</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="dv">2</span><span class="dt">L</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>xs <span class="ot">&lt;-</span> <span class="fu">simu_rdens</span>(<span class="at">n =</span> <span class="dv">100</span>, <span class="at">model =</span> <span class="dv">2</span>, <span class="at">d =</span> d)</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">bandwidth_optim</span>(</span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>  <span class="at">x =</span> xs, </span>
+<span id="cb4-31"><a href="#cb4-31" tabindex="-1"></a>  <span class="at">criterion =</span> <span class="st">&quot;lcv&quot;</span>, </span>
+<span id="cb4-32"><a href="#cb4-32" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;smnorm&quot;</span>)</span>
+<span id="cb4-33"><a href="#cb4-33" tabindex="-1"></a><span class="co"># Computing ISE</span></span>
+<span id="cb4-34"><a href="#cb4-34" tabindex="-1"></a><span class="fu">ISE</span>(</span>
+<span id="cb4-35"><a href="#cb4-35" tabindex="-1"></a>  <span class="at">S =</span> xs[,,<span class="dv">1</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>], </span>
+<span id="cb4-36"><a href="#cb4-36" tabindex="-1"></a>  <span class="at">x =</span> xs, </span>
+<span id="cb4-37"><a href="#cb4-37" tabindex="-1"></a>  <span class="at">bandwidth =</span> b, </span>
+<span id="cb4-38"><a href="#cb4-38" tabindex="-1"></a>  <span class="at">model =</span> <span class="dv">2</span>, </span>
+<span id="cb4-39"><a href="#cb4-39" tabindex="-1"></a>  <span class="at">kernel =</span> <span class="st">&quot;smnorm&quot;</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" tabindex="-1"></a><span class="co">#&gt; [1] 8.525459e-05</span></span>
+<span id="cb4-41"><a href="#cb4-41" tabindex="-1"></a><span class="co"># Next integrate over the space of psd matrices</span></span>
+<span id="cb4-42"><a href="#cb4-42" tabindex="-1"></a>ISE_int <span class="ot">&lt;-</span> <span class="fu">try</span>(</span>
+<span id="cb4-43"><a href="#cb4-43" tabindex="-1"></a>            ksm<span class="sc">::</span><span class="fu">integrate_spd</span>(</span>
+<span id="cb4-44"><a href="#cb4-44" tabindex="-1"></a>              <span class="at">f =</span> <span class="cf">function</span>(S) {</span>
+<span id="cb4-45"><a href="#cb4-45" tabindex="-1"></a>                <span class="fu">ISE</span>(</span>
+<span id="cb4-46"><a href="#cb4-46" tabindex="-1"></a>                  S,</span>
+<span id="cb4-47"><a href="#cb4-47" tabindex="-1"></a>                  <span class="at">x =</span> xs,</span>
+<span id="cb4-48"><a href="#cb4-48" tabindex="-1"></a>                  <span class="at">kernel =</span> <span class="st">&quot;smnorm&quot;</span>,  <span class="co"># (only for lcv)</span></span>
+<span id="cb4-49"><a href="#cb4-49" tabindex="-1"></a>                  <span class="at">bandwidth =</span> b,</span>
+<span id="cb4-50"><a href="#cb4-50" tabindex="-1"></a>                  <span class="at">model =</span> <span class="dv">2</span></span>
+<span id="cb4-51"><a href="#cb4-51" tabindex="-1"></a>                )</span>
+<span id="cb4-52"><a href="#cb4-52" tabindex="-1"></a>              },</span>
+<span id="cb4-53"><a href="#cb4-53" tabindex="-1"></a>              <span class="at">dim =</span> d,</span>
+<span id="cb4-54"><a href="#cb4-54" tabindex="-1"></a>              <span class="at">method =</span> <span class="st">&quot;hcubature&quot;</span>,</span>
+<span id="cb4-55"><a href="#cb4-55" tabindex="-1"></a>              <span class="at">lb =</span> <span class="dv">0</span>,</span>
+<span id="cb4-56"><a href="#cb4-56" tabindex="-1"></a>              <span class="at">ub =</span> <span class="cn">Inf</span>,</span>
+<span id="cb4-57"><a href="#cb4-57" tabindex="-1"></a>              <span class="at">neval =</span> <span class="fl">1e6</span>L</span>
+<span id="cb4-58"><a href="#cb4-58" tabindex="-1"></a>            ),</span>
+<span id="cb4-59"><a href="#cb4-59" tabindex="-1"></a>            <span class="at">silent =</span> <span class="cn">TRUE</span></span>
+<span id="cb4-60"><a href="#cb4-60" tabindex="-1"></a>          )</span>
+<span id="cb4-61"><a href="#cb4-61" tabindex="-1"></a>ISE_int</span>
+<span id="cb4-62"><a href="#cb4-62" tabindex="-1"></a><span class="co">#&gt; $integral</span></span>
+<span id="cb4-63"><a href="#cb4-63" tabindex="-1"></a><span class="co">#&gt; [1] 0.002425163</span></span>
+<span id="cb4-64"><a href="#cb4-64" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-65"><a href="#cb4-65" tabindex="-1"></a><span class="co">#&gt; $error</span></span>
+<span id="cb4-66"><a href="#cb4-66" tabindex="-1"></a><span class="co">#&gt; [1] 2.42419e-06</span></span>
+<span id="cb4-67"><a href="#cb4-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-68"><a href="#cb4-68" tabindex="-1"></a><span class="co">#&gt; $neval</span></span>
+<span id="cb4-69"><a href="#cb4-69" tabindex="-1"></a><span class="co">#&gt; [1] 66561</span></span>
+<span id="cb4-70"><a href="#cb4-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-71"><a href="#cb4-71" tabindex="-1"></a><span class="co">#&gt; $returnCode</span></span>
+<span id="cb4-72"><a href="#cb4-72" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

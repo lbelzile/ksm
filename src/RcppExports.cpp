@@ -419,6 +419,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// lscvkernsmnorm
+double lscvkernsmnorm(const arma::cube& x, const double& b, const int& h);
+RcppExport SEXP _ksm_lscvkernsmnorm(SEXP xSEXP, SEXP bSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::cube& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const int& >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(lscvkernsmnorm(x, b, h));
+    return rcpp_result_gen;
+END_RCPP
+}
 // lscvsymmat
 Rcpp::List lscvsymmat(const arma::cube& x, const arma::vec b, const int& h, std::string kernel);
 RcppExport SEXP _ksm_lscvsymmat(SEXP xSEXP, SEXP bSEXP, SEXP hSEXP, SEXP kernelSEXP) {
@@ -537,6 +550,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_ksm_kdens_symmat", (DL_FUNC) &_ksm_kdens_symmat, 5},
     {"_ksm_lscvkernwishart", (DL_FUNC) &_ksm_lscvkernwishart, 3},
     {"_ksm_lscvkernsmlnorm", (DL_FUNC) &_ksm_lscvkernsmlnorm, 3},
+    {"_ksm_lscvkernsmnorm", (DL_FUNC) &_ksm_lscvkernsmnorm, 3},
     {"_ksm_lscvsymmat", (DL_FUNC) &_ksm_lscvsymmat, 4},
     {"_ksm_rmnorm", (DL_FUNC) &_ksm_rmnorm, 3},
     {"_ksm_fdens", (DL_FUNC) &_ksm_fdens, 3},

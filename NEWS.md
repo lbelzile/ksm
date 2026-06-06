@@ -1,9 +1,11 @@
-# mig 1.1  (Release date 2025-11-22)
+# mig 1.1  (Release date 2026-06-06)
 
 ## New:
 
 - Function `lscv_kdens_symmat`, mimicking `lcv_kdens_symmat`, to evaluate the least square cross validation criterion at multiple bandwidth
+- Symmetric matrix normal least square cross validation criterion now implemented (`lscv_kern_smnorm`)
 - New unit test codes for optimization and kernels
+- Vignette now included
 
 ## Bug fixes:
 

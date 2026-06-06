@@ -375,6 +375,19 @@ lscv_kern_smlnorm <- function(x, b, h = 1L) {
     .Call(`_ksm_lscvkernsmlnorm`, x, b, h)
 }
 
+#' Least square cross validation criterion for matrix normal kernel
+#'
+#' Finite sample h-block leave-one-out approximation to the least
+#' square criterion, omitting constant term. Only pairs that are \eqn{|i-j| \leq h} apart are considered.
+#'
+#' @inheritParams lcv_kern_Wishart
+#' @export
+#' @param h [int] integer indicating the separation lag
+#' @return a double containing the log of the least square cross validation criterion
+lscv_kern_smnorm <- function(x, b, h = 1L) {
+    .Call(`_ksm_lscvkernsmnorm`, x, b, h)
+}
+
 #' Least square cross-validation for symmetric positive definite matrix kernels
 #'
 #' Given a cube of sample observations (consisting of random symmetric positive definite matrices), and a vector of candidate bandwidth parameters \code{b},
@@ -382,7 +395,7 @@ lscv_kern_smlnorm <- function(x, b, h = 1L) {
 #' return the bandwidth among the choices that minimizes the criterion.
 #' @param x array of dimension \code{d} by \code{d} by \code{n}
 #' @param b vector of candidate bandwidth, strictly positive
-#' @param kernel string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.
+#' @param kernel string indicating the kernel, one of \code{Wishart}, \code{smnorm} or \code{smlnorm}.
 #' @param h integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}
 #' @export
 #' @return a list with arguments

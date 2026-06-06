@@ -13,7 +13,7 @@ lscv_kdens_symmat(x, b, h = 1L, kernel = "Wishart")
 
 \item{h}{integer for the lag vector for determining which observation to exclude, any data point in a radius of \code{h}}
 
-\item{kernel}{string indicating the kernel, one of \code{Wishart} or \code{smlnorm}.}
+\item{kernel}{string indicating the kernel, one of \code{Wishart}, \code{smnorm} or \code{smlnorm}.}
 }
 \value{
 a list with arguments

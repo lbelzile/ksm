@@ -130,11 +130,6 @@ bandwidth_optim <- function(
   kernel <- match.arg(kernel)
   h <- as.integer(h)
   stopifnot(h >= 1L, h < dim(x)[3])
-  if (criterion == "lscv" & kernel == "smnorm") {
-    stop(
-      "Least square cross validation not currently implemented for matrix normal kernel estimator."
-    )
-  }
   if (criterion == "lscv") {
     if (kernel == "Wishart") {
       optfun <- function(band) {
@@ -146,6 +141,11 @@ bandwidth_optim <- function(
       optfun <- function(band) {
         fn <- lscv_kern_smlnorm(x = x, b = band, h = h)
         -fn #-exp(fn[1]) + exp(fn[2])
+      }
+    } else if (kernel == "smnorm") {
+      optfun <- function(band) {
+        fn <- lscv_kern_smnorm(x = x, b = band, h = h)
+        -fn
       }
     }
   } else {

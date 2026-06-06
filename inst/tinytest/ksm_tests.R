@@ -133,3 +133,35 @@ expect_equal(
   dens
 )
 expect_true(isTRUE(all(dens >= 0)))
+
+
+# smnorm_kern_R <- function(x,M, b){
+#   n <- dim(x)[3]
+#   d <- dim(x)[1]
+#   logcst <- d*(d+1)/4 * log(2*pi*b) - (d-1)*d/4*log(2)
+#   res <- numeric(n)
+#   for(i in seq_len(n)){
+#     res[i] <- exp(sum(diag(-crossprod(x[,,i] - M) / (2*b))))
+#   }
+#   mean(res) / exp(logcst)
+# }
+#
+# lscv_kern_smnorm_R <- function(x, b){
+#   d <- dim(x)[1]
+#   n <- dim(x)[3]
+#   logcst <- d * (d+1) / 4 * log(2*pi*b) + 0.5 * d * log(2)
+#   out <- matrix(nrow = n, ncol = n)
+#   for(i in 1:n){
+#     for(j in 1:n){
+#       out[i,j] <- exp(sum(diag(
+#         (-crossprod(x[,,i]) - crossprod(x[,,j]) + crossprod(x[,,j] + x[,,i])/2) /(2* b))))
+#     }
+#   }
+#   obj <- numeric(n)
+#   for(i in seq_len(n)){
+#     obj[i] <- smnorm_kern_R(x[,,-i], x[,,i], b)
+#   }
+#   mean(out) / exp(logcst) -2 * mean(obj)
+# }
+#
+#
